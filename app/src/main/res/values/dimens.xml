@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="margin_top_item_recycleview">25dp</dimen>
+    <dimen name="margin_bottom_item_recycleview">25dp</dimen>
+</resources>

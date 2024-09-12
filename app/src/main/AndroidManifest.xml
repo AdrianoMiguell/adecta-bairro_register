@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name=".MyApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/icon_back_full_logo_associacao_tapera"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/icon_back_full_logo_associacao_tapera"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.BairroRegister"
+        tools:targetApi="31">
+        <activity
+            android:name=".ui.activitys.users.UserSupportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activitys.activity_workspace.WorkspaceMembersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activitys.activity_workspace.JoinWorkspaceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activitys.users.SettingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activitys.activity_workspace.NotificationIncomingOrdersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activitys.activity_workspace.DeleteCitizensActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activitys.DataSynchronizationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.activitys.users.ResetPasswordActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activitys.activity_workspace.CitizenDetailActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activitys.activity_workspace.RegisterCitizenActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activitys.activity_workspace.WorkspaceMainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BairroRegister" />
+        <activity
+            android:name=".ui.activitys.activity_workspace.CreateEditWorkspaceActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BairroRegister" />
+        <activity
+            android:name=".ui.activitys.users.RegisterActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BairroRegister" />
+        <activity
+            android:name=".ui.activitys.users.LoginActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BairroRegister" />
+        <activity
+            android:name=".ui.activitys.SplashScreenActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BairroRegister">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activitys.MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BairroRegister" />
+    </application>
+
+</manifest>

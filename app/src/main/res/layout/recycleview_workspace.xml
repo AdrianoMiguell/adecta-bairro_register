@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/recycleview_workspace"
+    style="@style/layoutClickedBackgroundGreen"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    android:layout_marginHorizontal="25dp"
+    android:layout_marginVertical="10dp"
+    android:background="@drawable/background_gradient_light_one"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:paddingHorizontal="25dp"
+    android:paddingVertical="20dp">
+    <ImageView
+        android:id="@+id/image_workspace"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/icon_community" />
+    <!--    </LinearLayout>-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="10dp"
+        android:gravity="center_vertical"
+        android:layout_toEndOf="@+id/image_workspace"
+        android:layout_weight="2"
+        android:orientation="vertical"
+        android:paddingEnd="15dp">
+
+        <TextView
+            android:id="@+id/title_workspace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Titulo do Workspace"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_describe_workspace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:text="Descrição"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/text_number_participants"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="7.5dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:text="participantes"
+            android:textColor="@color/white"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!--    <LinearLayout-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_alignParentRight="true"-->
+    <!--        android:layout_alignParentBottom="true"-->
+    <!--        android:layout_alignParentTop="true"-->
+    <!--        android:gravity="center">-->
+    <!--        <ImageView-->
+    <!--            android:id="@+id/image_workspace"-->
+    <!--            android:layout_width="100dp"-->
+    <!--            android:layout_height="75dp"-->
+    <!--            android:layout_gravity="right|center_vertical"-->
+    <!--            android:gravity="center"-->
+    <!--            android:src="@drawable/test_workspace" />-->
+    <!--    </LinearLayout>-->
+
+</RelativeLayout>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="0dp"
+    tools:context=".ui.activitys.activity_workspace.WorkspaceMainActivity">
+
+    <RelativeLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/greenish_white"
+        android:padding="0dp"
+        android:orientation="vertical">
+        <include
+            android:id="@+id/include_navbar_view_top"
+            layout="@layout/navbar_view_top"
+            android:layout_width="match_parent"
+            android:layout_height="70dp" />
+        <FrameLayout
+            android:id="@+id/fragment_container_citizens"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="0dp"
+            android:layout_below="@id/include_navbar_view_top"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true" />
+    </RelativeLayout>
+
+    <!-- NavigationView for drawer menu -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/top_nav_menu_view"
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:headerLayout="@layout/header_top_navbar"
+        app:theme="@style/NavigationDrawerStyle"
+        app:itemTextColor="@color/tert_ebony_clay"
+        app:itemIconTint="@color/tert_ebony_clay"
+        app:itemBackground="@drawable/backgroud_selector_item_navigation"
+        app:menu="@menu/top_nav_menu_secondary" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

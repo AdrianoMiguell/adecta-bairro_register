@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+<!--        android:centerColor="@color/water_green_opacity"-->
+<!--    android:endColor="@color/main_green_haze"-->
+    <corners
+        android:radius="10dp"/>
+    <gradient
+        android:angle="0"
+        android:startColor="@color/water_green"
+        android:endColor="@color/quat_caribbean_green"
+        android:type="linear"
+        android:centerX="0.4"
+        android:centerY="0.4"
+        />
+    <!--    <shape-->
+    <!--        xmlns:android="http://schemas.android.com/apk/res/android" >-->
+    <!--        <gradient-->
+    <!--            android:type="linear"-->
+    <!--            android:startColor="@color/main_green_haze"-->
+    <!--            android:endColor="@color/quat_caribbean_green"-->
+    <!--            android:angle="90"-->
+    <!--            />-->
+    <!--    </shape>-->
+</shape>

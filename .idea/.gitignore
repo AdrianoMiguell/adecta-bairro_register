@@ -1,0 +1,48 @@
+# Default ignored files
+# Diretórios e arquivos de build
+/build
+/app/build
+/.gradle
+/.idea
+
+# Arquivos de configuração específicos de Android Studio
+.idea/workspace.xml
+.idea/libraries
+.idea/caches
+.idea/modules.xml
+.idea/gradle.xml
+.idea/vcs.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/misc.xml
+*.iml
+.gradle/
+/local.properties
+
+# Logs
+*.log
+
+# Arquivos gerados
+*.apk
+*.ap_
+*.dex
+*.class
+*.jar
+*.war
+*.ear
+*.cache
+*.appbundle
+*.zip
+*.tar.gz
+*.tmp
+
+# Certificados de Keystore
+*.jks
+*.keystore
+
+# Arquivos de sistema do macOS
+.DS_Store
+
+# Arquivos de sistema do Windows
+Thumbs.db
+Desktop.ini

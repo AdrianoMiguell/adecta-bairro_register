@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.activitys.DataSynchronizationActivity">
+
+    <include
+        android:id="@+id/layout_navbar_top"
+        layout="@layout/navbar_view_top"
+        android:layout_width="match_parent"
+        android:layout_height="70dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="40dp"
+            android:layout_marginTop="40dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sincronizar Dados"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                android:text="Ao sincronizar os dados você garante que a informação salva online esteja armazenada corretamente em seu dispositivo."
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/button_synchronization"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="40dp"
+                android:layout_marginVertical="15dp"
+                android:text="Sincronizar os dados"
+                android:textSize="15sp" />
+
+
+            <LinearLayout
+                android:id="@+id/layout_view_sync"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="25dp"
+                android:visibility="gone">
+                <LinearLayout
+                    android:id="@+id/layout_view_sync_user"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="15dp"
+                        android:src="@drawable/icon_sincronizar" />
+
+                    <TextView
+                        android:id="@+id/text_sync_user"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Sincronizando dados do usuário."
+                        android:textSize="15sp" />
+
+                    <ProgressBar
+                        android:id="@+id/progress_bar_sync_user"
+                        style="@style/TextAppearance.AppCompat.Small"
+                        android:layout_width="25dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="right"
+                        android:layout_marginHorizontal="20dp"
+                        android:backgroundTint="@color/red"
+                        android:visibility="gone"
+                        />
+
+                    <ImageView
+                        android:id="@+id/image_sync_user"
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_marginEnd="15dp"
+                        android:src="@drawable/baseline_check_circle_24"
+                        android:visibility="gone"
+                        />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_view_sync_workspace"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="15dp"
+                        android:src="@drawable/icon_sincronizar" />
+
+                    <TextView
+                        android:id="@+id/text_sync_workspace"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Sincronizando dados dos grupos de trabalho."
+                        android:textSize="15sp" />
+
+                    <ProgressBar
+                        android:id="@+id/progress_bar_sync_workspace"
+                        style="@style/TextAppearance.AppCompat.Small"
+                        android:layout_width="25dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="right"
+                        android:layout_marginHorizontal="20dp"
+                        android:backgroundTint="@color/red"
+                        android:foregroundGravity="center_vertical"
+                        android:visibility="gone"
+                        />
+
+                    <ImageView
+                        android:id="@+id/image_sync_workspace"
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_marginEnd="15dp"
+                        android:src="@drawable/baseline_check_circle_24"
+                        android:visibility="gone"
+                        />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_view_sync_citizen"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="15dp"
+                        android:src="@drawable/icon_sincronizar" />
+
+                    <TextView
+                        android:id="@+id/text_sync_citizen"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Sincronizando dados dos cidadãos."
+                        android:textSize="15sp" />
+
+                    <ProgressBar
+                        android:id="@+id/progress_bar_sync_citizen"
+                        style="@style/TextAppearance.AppCompat.Small"
+                        android:layout_width="25dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="right"
+                        android:layout_marginHorizontal="20dp"
+                        android:backgroundTint="@color/red"
+                        android:visibility="gone"
+                        />
+
+                    <ImageView
+                        android:id="@+id/image_sync_citizen"
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_marginEnd="15dp"
+                        android:src="@drawable/baseline_check_circle_24"
+                        android:visibility="gone"
+                        />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/home_topnav"
+            android:icon="@drawable/icon_home"
+            android:title="Inicio" />
+    </group>
+    <item android:title="Grupo de Trabalho" android:id="@+id/item_workspace_topnav">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/join_group_topnav"
+                    android:icon="@drawable/icon_login"
+                    android:title="Participar" />
+                <item
+                    android:id="@+id/informacoes_workspace_topnav"
+                    android:icon="@drawable/icon_information"
+                    android:title="Informações"
+                    android:visible="false" />
+                <item
+                    android:id="@+id/users_workspace_topnav"
+                    android:icon="@drawable/icon_group_users"
+                    android:title="Membros"
+                    android:visible="false" />
+            </group>
+        </menu>
+    </item>
+    <item android:title="Sistema" android:id="@+id/item_system_topnav">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/settings_topnav"
+                    android:icon="@drawable/icon_settings"
+                    android:title="Configurações" />
+                <item
+                    android:id="@+id/suport_topnav"
+                    android:icon="@drawable/icon_suport"
+                    android:title="Suporte" />
+            </group>
+        </menu>
+    </item>
+</menu>

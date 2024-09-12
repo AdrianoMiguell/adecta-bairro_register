@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/header_navbar"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:background="@drawable/background_gradient_dark_blue"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="2.5dp"
+    android:paddingBottom="20dp">
+
+    <ImageView
+        android:id="@+id/button_close_menu"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:padding="22.5dp"
+        android:src="@drawable/icon_close"
+        android:translationY="30dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical">
+        <!--    Your Name -->
+        <TextView
+            android:id="@+id/username_navbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="@color/white"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <!--    "youremail@gmail.com"-->
+        <TextView
+            android:id="@+id/email_navbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            android:text=""
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+    </LinearLayout>
+</RelativeLayout>

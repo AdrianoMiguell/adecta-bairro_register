@@ -23,6 +23,7 @@ import com.miguelprojects.myapplication.ui.activitys.activity_workspace.JoinWork
 import com.miguelprojects.myapplication.ui.activitys.activity_workspace.WorkspaceMainActivity
 import com.miguelprojects.myapplication.ui.activitys.activity_workspace.WorkspaceMembersActivity
 import com.miguelprojects.myapplication.ui.activitys.users.SettingActivity
+import com.miguelprojects.myapplication.ui.activitys.users.UserSupportActivity
 
 class DrawerConfigurator(
     private val activity: AppCompatActivity,
@@ -163,6 +164,11 @@ class DrawerConfigurator(
                 true
             }
 
+            R.id.suport_topnav -> {
+                navigateToSupport()
+                false
+            }
+
             else -> false
         }
     }
@@ -215,6 +221,16 @@ class DrawerConfigurator(
                 putString("userId", userId)
             }
             startActivity(SettingActivity::class.java, extras)
+        }
+    }
+
+    private fun navigateToSupport() {
+        closeDrawerWithDelay()
+        if (activity !is SettingActivity) {
+            val extras = Bundle().apply {
+                putString("userId", userId)
+            }
+            startActivity(UserSupportActivity::class.java, extras)
         }
     }
 

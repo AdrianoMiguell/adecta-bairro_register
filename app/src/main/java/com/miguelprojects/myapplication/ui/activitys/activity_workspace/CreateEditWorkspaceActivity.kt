@@ -39,6 +39,7 @@ import com.miguelprojects.myapplication.model.UserModel
 import com.miguelprojects.myapplication.model.WorkspaceModel
 import com.miguelprojects.myapplication.repository.UserRepository
 import com.miguelprojects.myapplication.room.database.MyAppDatabase
+import com.miguelprojects.myapplication.room.entity.User
 import com.miguelprojects.myapplication.room.entity.Workspace
 import com.miguelprojects.myapplication.ui.activitys.MainActivity
 import com.miguelprojects.myapplication.util.DrawerConfigurator
@@ -49,6 +50,7 @@ import com.miguelprojects.myapplication.util.StringsFormattingManager.convertCap
 import com.miguelprojects.myapplication.util.StringsFormattingManager.formatCep
 import com.miguelprojects.myapplication.util.StringsFormattingManager.formattedOrDefault
 import com.miguelprojects.myapplication.util.StyleSystemManager
+import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
 
@@ -68,6 +70,7 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
     private var newWorkspaceModel = WorkspaceModel()
     private var workspaceId: String = ""
     private var userId: String = ""
+    private var userModel = UserModel()
     private var isReceiverRegistered = false
     private var listMembers: List<UserModel> = emptyList()
 
@@ -93,17 +96,39 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
                 }
 
                 "DATA_SYNCHRONIZED_USER" -> {
-                    val getUserId = intent.getStringExtra("userId") ?: ""
-                    if (getUserId.isNotEmpty()) {
-                        userId = getUserId
+                    if (intent.getStringExtra("userId").isNullOrEmpty()) {
+                        Toast.makeText(
+                            this@CreateEditWorkspaceActivity,
+                            "Sessão Encerrada! Por favor, realize login novamente!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        UserSessionManager.onUserNotFoundOrLogout(
+                            this@CreateEditWorkspaceActivity,
+                            userViewModel
+                        )
                     }
                 }
 
                 "DATA_SYNCHRONIZED_WORKSPACE" -> {
-                    val getWorkspaceId = intent.getStringExtra("workspaceId") ?: ""
-                    if (getWorkspaceId.isNotEmpty()) {
-                        workspaceId = getWorkspaceId
-                    }
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (workspaceId.isNotEmpty() && intent.getStringExtra("workspaceId").isNullOrEmpty()) {
+                            Toast.makeText(
+                                this@CreateEditWorkspaceActivity,
+                                "Sincronização dos dados em andamento!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            startActivity(
+                                Intent(
+                                    this@CreateEditWorkspaceActivity,
+                                    MainActivity::class.java
+                                ).addFlags(
+                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                )
+                            )
+                            finish()
+                        }
+                    }, 1000)
                 }
 
                 else -> {
@@ -184,10 +209,6 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
 
         startTools()
 
-//        binding.layoutNavbarTop.buttonOpenMenu.setImageResource(R.drawable.baseline_arrow_back_24)
-//        binding.layoutNavbarTop.buttonOpenMenu.setOnClickListener {
-//            finish()
-//        }
         DrawerConfigurator(
             this,
             UserModel(),
@@ -208,12 +229,21 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
             false
         )
 
+        getUserData()
+
+
         if (workspaceId.isEmpty()) {
             addNewWorkspace()
             updateUISystem()
             progressBarView(false)
         } else {
             prepareWorkspaceData()
+        }
+    }
+
+    private fun getUserData() {
+        userViewModel.loadUserRoom(userId) { user ->
+            userModel = User.toUserModel(user!!)
         }
     }
 
@@ -347,6 +377,7 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
 
         binding.buttonCreateEdit.setOnClickListener {
             getValuesEditFields()
+
             changeStyleButton(
                 binding.buttonCreateEdit,
                 R.color.quat_caribbean_green,
@@ -360,13 +391,20 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
                 newWorkspaceModel.id = ""
                 newWorkspaceModel.creator = userId
 
-                if (networkChangeReceiver.isNetworkConnected(this)) {
-                    val userIds: MutableMap<String, Boolean> = mutableMapOf(userId to true)
-                    newWorkspaceModel.userIds = userIds
+                userViewModel.loadUserRoom(userId) { user ->
+                    if (user == null) {
+                        showToast("Erro ao captar dados do criador do grupo!")
+                        return@loadUserRoom
+                    }
 
-                    addWorkspaceDataFirebase()
-                } else {
-                    addWorkspaceDataRoom(needsSync)
+                    if (networkChangeReceiver.isNetworkConnected(this)) {
+                        val userIds: MutableMap<String, Boolean> = mutableMapOf(userId to true)
+                        newWorkspaceModel.userIds = userIds
+
+                        addWorkspaceDataFirebase()
+                    } else {
+                        addWorkspaceDataRoom(needsSync)
+                    }
                 }
             } else {
                 showToast(
@@ -454,10 +492,14 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
                             View.VISIBLE
                         enableButtonCloseWorkspace = true
                         removeWorkspaceMember()
+                        setButtonViewMembers()
 
                         setValuesWorkspace()
                     }
+
                     updateUISystem()
+                    setOnViewTerms()
+
                     binding.layoutInformationWorkspace.informationWorkspace.visibility =
                         View.VISIBLE
                 } else {
@@ -484,6 +526,7 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
                         binding.layoutInformationWorkspace.buttonCloseWorkspace.visibility =
                             View.VISIBLE
                         removeWorkspaceMember()
+                        setButtonViewMembers()
 
                         changeStyleButton(
                             binding.buttonCreateEdit,
@@ -495,6 +538,8 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
                     }
 
                     updateUISystem()
+                    setOnViewTerms()
+
                     binding.layoutInformationWorkspace.informationWorkspace.visibility =
                         View.VISIBLE
                 } else {
@@ -522,7 +567,7 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun setValuesWorkspace() {
         progressBarView(false)
-3
+        3
         binding.layoutInformationWorkspace.textTitleWorkspace.text =
             "${oldWorkspaceModel.name}"
         binding.layoutInformationWorkspace.textDescriptionWorkspace.text =
@@ -604,12 +649,7 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
         button.isEnabled = isEnable
     }
 
-    private fun editNewWorkspace() {
-        setValuesWorkspace()
-
-        binding.titleActivityWorkspace.text = "Editar Grupo de Trabalho"
-        binding.buttonCreateEdit.text = "Editar"
-
+    private fun setButtonViewMembers() {
         binding.layoutInformationWorkspace.buttonViewWorkspaceMembers.setOnClickListener {
             val intent = Intent(this, WorkspaceMembersActivity::class.java)
             intent.apply {
@@ -618,6 +658,15 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
+    }
+
+    private fun editNewWorkspace() {
+        setValuesWorkspace()
+
+        binding.titleActivityWorkspace.text = "Editar Grupo de Trabalho"
+        binding.buttonCreateEdit.text = "Editar"
+
+        setButtonViewMembers()
 
         binding.buttonCreateEdit.setOnClickListener {
             newWorkspaceModel = oldWorkspaceModel
@@ -839,6 +888,20 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
                     finish()
                 }
             })
+    }
+
+    private fun setOnViewTerms() {
+        binding.layoutInformationWorkspace.layoutPrivacyTerms.setOnClickListener {
+            try {
+                println("Abrindo nova tela privacy terms")
+                val intent = Intent(this, PrivacyTermsActivity::class.java)
+                intent.putExtra("user_id", userId)
+                intent.putExtra("workspace_id", workspaceId)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.d("Erro ao abrir nova tela", "Erro: ${e.message}")
+            }
+        }
     }
 
     companion object {

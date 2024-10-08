@@ -31,6 +31,7 @@ import com.miguelprojects.myapplication.adapter.listener.CitizenOnClickListener
 import com.miguelprojects.myapplication.databinding.FragmentWorkspaceMainBinding
 import com.miguelprojects.myapplication.factory.CitizenViewModelFactory
 import com.miguelprojects.myapplication.model.CitizenModel
+import com.miguelprojects.myapplication.model.UserModel
 import com.miguelprojects.myapplication.model.WorkspaceModel
 import com.miguelprojects.myapplication.repository.CitizenRepository
 import com.miguelprojects.myapplication.ui.activitys.activity_workspace.CitizenDetailActivity
@@ -72,6 +73,7 @@ class WorkspaceMainFragment : Fragment() {
     private var userId: String = ""
     private var workspaceId: String = ""
     private var isSynchronizing: Boolean = false
+    private var userModel = UserModel()
     private val filtersCitizenList = mutableMapOf<String, Any>(
         "searchValue" to searchValue,
         "sexCategory" to sexCategory,
@@ -128,6 +130,7 @@ class WorkspaceMainFragment : Fragment() {
         arguments?.let {
             workspaceId = it.getString(ARG_WORKSPACE_ID) ?: ""
             userId = it.getString(ARG_USER_ID) ?: ""
+            userModel = it.getParcelable(ARG_USER) ?: UserModel()
         }
 
         uiUpdateReceiver = object : BroadcastReceiver() {
@@ -215,6 +218,7 @@ class WorkspaceMainFragment : Fragment() {
 
         outState.putString("userId", userId)
         outState.putString("workspaceId", workspaceId)
+        outState.putParcelable("userModel", userModel)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -224,6 +228,7 @@ class WorkspaceMainFragment : Fragment() {
         if (savedInstanceState != null) {
             userId = savedInstanceState.getString("userId") ?: ""
             workspaceId = savedInstanceState.getString("workspaceId") ?: ""
+            userModel = savedInstanceState.getParcelable("userModel") ?: UserModel()
         }
 
         startTools()
@@ -870,6 +875,8 @@ class WorkspaceMainFragment : Fragment() {
                 intent.putExtra("userId", userId)
                 intent.putExtra("citizenId", citizenModel.id)
                 intent.putExtra("citizenModel", citizenModel)
+                intent.putExtra("workspaceModel", workspaceModel)
+                intent.putExtra("userModel", userModel)
                 result.launch(intent)
             })
         binding.recycleviewCitizen.adapter = adapter
@@ -891,6 +898,7 @@ class WorkspaceMainFragment : Fragment() {
     companion object {
         private const val ARG_WORKSPACE_ID = "workspace_id"
         private const val ARG_USER_ID = "user_id"
+        private const val ARG_USER = "user"
         private const val INACTIVE_CODE = 2
         private const val UPDATE_CODE = 3
         private const val DELETE_CODE = 4
@@ -898,11 +906,13 @@ class WorkspaceMainFragment : Fragment() {
         fun newInstance(
             workspaceId: String,
             userId: String,
+            userModel: UserModel,
         ): WorkspaceMainFragment {
             val fragment = WorkspaceMainFragment()
             val args = Bundle()
             args.putString(ARG_WORKSPACE_ID, workspaceId)
             args.putString(ARG_USER_ID, userId)
+            args.putParcelable(ARG_USER, userModel)
             fragment.arguments = args
             return fragment
         }

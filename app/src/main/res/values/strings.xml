@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">ADECTA</string>
+    <string name="support_name">A.M. DevWorks</string>
+    <string name="support_email">amsoftdevworks@gmail.com</string>
     <string name="app_full_name">Associação de Desenvolvimento Comunitário de Tapera. \nPetrolina - PE</string>
     <string name="senha" translatable="false">Senha</string>
     <string name="email" translatable="false">Email</string>

@@ -42,6 +42,14 @@ import com.miguelprojects.myapplication.viewmodel.UserViewModel
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
 
 class MainActivity : AppCompatActivity() {
+
+    //    TODO("Colocar criptografia nos dados salvos offline")
+//    TODO("Fazer a página de suporte")
+//    TODO("Colocar novo campo "email do citizen" e lógica para enviar mensagem para o email ou um sms para o numero com as diretrizes de segurança")
+//    TODO("Finalizar a atualização online dos dados do usuário")
+
+//    TODO("Fazer activity de Suporte")
+
     //    Estou testando a situação em que o usuario conseguiu ser logado no firebase, mas não no banco.
     private lateinit var binding: ActivityMainBinding
     private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
@@ -74,6 +82,7 @@ class MainActivity : AppCompatActivity() {
             println("Entrou aqui no Main | Alternativa para versões anteriores do Android")
             // Alternativa para versões anteriores do Android
         }
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -236,7 +245,7 @@ class MainActivity : AppCompatActivity() {
     private fun needsAuthAgain() {
         Toast.makeText(
             this,
-            "Por favor, realize o login novamente!",
+            "Sessão Encerrada! Por favor, realize login novamente!",
             Toast.LENGTH_SHORT
         ).show()
     }

@@ -99,6 +99,9 @@ class RegisterPersonalDataFragment : Fragment() {
                 valueEditSex = citizenModel.sex
                 binding.editSex.setSelection(spinnerPosition)
             }
+        } else {
+            valueEditSex = citizenModel.sex
+            binding.editSex.setSelection(2)
         }
     }
 

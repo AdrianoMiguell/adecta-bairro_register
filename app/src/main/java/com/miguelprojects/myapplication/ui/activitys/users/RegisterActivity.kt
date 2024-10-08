@@ -168,11 +168,6 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-//    TODO("Colocar criptografia nos dados salvos offline")
-//    TODO("Fazer a página de suporte")
-//    TODO("Colocar novo campo "email do citizen" e lógica para enviar mensagem para o email ou um sms para o numero com as diretrizes de segurança")
-//    TODO("Finalizar a atualização online dos dados do usuário")
-
 
     private fun saveUserLocal(userModel: UserModel, password: String) {
         try {

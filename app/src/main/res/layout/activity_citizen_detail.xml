@@ -227,6 +227,34 @@
                 android:textIsSelectable="true"
                 android:text="Complementos:" />
 
+
+            <LinearLayout
+                android:id="@+id/layout_privacy_terms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:alpha=".85"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:src="@drawable/baseline_auto_stories_24" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingVertical="6dp"
+                    android:text="Termo de Privacidade do Cidadão"
+                    android:textColor="@color/sec_jelly_bean"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

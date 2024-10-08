@@ -3,9 +3,12 @@ package com.miguelprojects.myapplication.ui.activitys.users
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.AlertDialog
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -17,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.navigation.NavigationView
 import com.miguelprojects.myapplication.MyApplication
 import com.miguelprojects.myapplication.R
@@ -29,6 +33,7 @@ import com.miguelprojects.myapplication.room.entity.User
 import com.miguelprojects.myapplication.ui.activitys.MainActivity
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
+import com.miguelprojects.myapplication.util.NetworkSynchronizeUser
 import com.miguelprojects.myapplication.util.StyleSystemManager
 import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
@@ -40,9 +45,24 @@ class SettingActivity : AppCompatActivity() {
     private lateinit var database: MyAppDatabase
     private lateinit var navigationView: NavigationView
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
     private val networkChangeReceiver = NetworkChangeReceiver()
     private var userSessionManager = UserSessionManager
+    private var isReceiverRegistered = false
     private var userId: String = ""
+    private val uiUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                "DATA_SYNCHRONIZED_USER" -> {
+                    if(intent.getStringExtra("userId").isNullOrEmpty()){
+                        Toast.makeText(this@SettingActivity, "Sessão Encerrada! Por favor, realize login novamente!", Toast.LENGTH_SHORT).show()
+                        UserSessionManager.onUserNotFoundOrLogout(this@SettingActivity, userViewModel)
+                    }
+                }
+                else -> {}
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +82,21 @@ class SettingActivity : AppCompatActivity() {
         viewProgressBar(true)
 
         startTools()
+
+        if (!isReceiverRegistered) {
+            val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+
+            networkSynchronizeUser = NetworkSynchronizeUser(userViewModel, sharedPreferences, userId)
+            registerReceiver(networkSynchronizeUser, intentFilter)
+
+            LocalBroadcastManager.getInstance(this).registerReceiver(
+                uiUpdateReceiver,
+                IntentFilter().apply {
+                    addAction("DATA_SYNCHRONIZED")
+                    addAction("DATA_SYNCHRONIZED_USER")
+                }
+            )
+        }
     }
 
     private fun viewLayoutSetting(status: Boolean) {
@@ -79,6 +114,19 @@ class SettingActivity : AppCompatActivity() {
         loadUserData()
         navigationView = findViewById(binding.topNavMenuView.id)
         navigationView.setCheckedItem(R.id.home_topnav)
+    }
+
+    override fun onDestroy() {
+        if (isReceiverRegistered) {
+            try {
+                unregisterReceiver(networkSynchronizeUser)
+            } catch (e: IllegalArgumentException) {
+                // O receptor não estava registrado, não faça nada
+            } finally {
+                isReceiverRegistered = false
+            }
+        }
+        super.onDestroy()
     }
 
     private fun loadUserData() {

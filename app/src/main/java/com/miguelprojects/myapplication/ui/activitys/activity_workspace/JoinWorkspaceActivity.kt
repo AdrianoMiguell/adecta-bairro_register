@@ -93,7 +93,7 @@ class JoinWorkspaceActivity : AppCompatActivity() {
                     ).show()
                     Handler(Looper.getMainLooper()).postDelayed({
                         binding.buttonJoin.isEnabled = true
-                    }, 100)
+                    }, 1000)
                 } else {
                     workspaceRequestViewModel.sendRequestJoin(
                         workspaceCode,
@@ -102,10 +102,12 @@ class JoinWorkspaceActivity : AppCompatActivity() {
                         if (res) {
                             finish()
                         } else {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                binding.buttonJoin.isEnabled = true
+                            }, 1000)
                             binding.editCodeJoin.setText("")
                             println("Erro ao enviar solicitação para entrar no grupo. Reporte esse problema!")
                         }
-                        binding.buttonJoin.isEnabled = true
                         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -117,7 +119,7 @@ class JoinWorkspaceActivity : AppCompatActivity() {
                 ).show()
                 Handler(Looper.getMainLooper()).postDelayed({
                     binding.buttonJoin.isEnabled = true
-                }, 100)
+                }, 1000)
             }
         }
     }

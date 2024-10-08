@@ -17,6 +17,9 @@
         android:theme="@style/Theme.BairroRegister"
         tools:targetApi="31">
         <activity
+            android:name=".ui.activitys.activity_workspace.PrivacyTermsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.activitys.users.UserSupportActivity"
             android:exported="false" />
         <activity

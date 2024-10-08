@@ -18,7 +18,6 @@ data class WorkspaceModel(
     var creator: String = "",
     var userIds: MutableMap<String, Boolean> = mutableMapOf(), // Alteração aqui para MutableMap
 ) : Parcelable {
-
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
@@ -30,7 +29,7 @@ data class WorkspaceModel(
         parcel.readByte() != 0.toByte(),
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        parcel.readHashMap(Boolean::class.java.classLoader) as MutableMap<String, Boolean>,
+        parcel.readHashMap(Boolean::class.java.classLoader) as MutableMap<String, Boolean>
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

@@ -36,6 +36,7 @@ import com.miguelprojects.myapplication.util.NetworkChangeReceiver
 import com.miguelprojects.myapplication.util.NetworkSynchronizeUser
 import com.miguelprojects.myapplication.util.NetworkSynchronizeWorkspace
 import com.miguelprojects.myapplication.util.StyleSystemManager
+import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.util.WorkManagerUtil
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
@@ -45,10 +46,10 @@ class WorkspaceMainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
 //    private lateinit var drawerLayout: DrawerLayout
     private lateinit var drawerToggle: ActionBarDrawerToggle
-    private lateinit var userModel: UserModel
     private lateinit var database: MyAppDatabase
     private lateinit var networkSynchronizeWorkspace: NetworkSynchronizeWorkspace
     private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
+    private var userModel = UserModel()
     private val networkChangeReceiver = NetworkChangeReceiver()
     private var workspaceId: String = ""
     private var userId: String = ""
@@ -58,6 +59,12 @@ class WorkspaceMainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 "DATA_SYNCHRONIZED" -> println("No data sync")
+                "DATA_SYNCHRONIZED_USER" -> {
+                    if(intent.getStringExtra("userId").isNullOrEmpty()){
+                        Toast.makeText(this@WorkspaceMainActivity, "Sessão Encerrada! Por favor, realize login novamente!", Toast.LENGTH_SHORT).show()
+                        UserSessionManager.onUserNotFoundOrLogout(this@WorkspaceMainActivity, userViewModel)
+                    }
+                }
                 else -> println("Broadcast inesperado!")
             }
         }
@@ -125,24 +132,15 @@ class WorkspaceMainActivity : AppCompatActivity() {
 
             LocalBroadcastManager.getInstance(this).registerReceiver(
                 uiUpdateReceiver,
-                IntentFilter().apply { addAction("DATA_SYNCHRONIZED") }
+                IntentFilter().apply {
+                    addAction("DATA_SYNCHRONIZED")
+                    addAction("DATA_SYNCHRONIZED_USER")
+                    addAction("DATA_SYNCHRONIZED_WORKSPACE")
+                }
             )
             isReceiverRegistered = true
         }
     }
-
-//    override fun onResume() {
-//        super.onResume()
-////        clearMenuSelection()
-//    }
-////
-//    private fun clearMenuSelection() {
-//        val menu = binding.topNavMenuView.menu
-//        for (i in 0 until menu.size()) {
-//            val menuItem = menu.getItem(i)
-//            menuItem.isChecked = false
-//        }
-//    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -170,7 +168,7 @@ class WorkspaceMainActivity : AppCompatActivity() {
 
     private fun initializeFragment() {
         if (!isFinishing && !isDestroyed) {
-            loadFragment(WorkspaceMainFragment.newInstance(workspaceId, userId), false)
+            loadFragment(WorkspaceMainFragment.newInstance(workspaceId, userId, userModel), false)
         }
     }
 
@@ -247,218 +245,3 @@ class WorkspaceMainActivity : AppCompatActivity() {
         }
     }
 }
-
-//
-//class WorkspaceMainActivity : AppCompatActivity() {
-//    private lateinit var binding: ActivityWorkspaceMainBinding
-//    private lateinit var sharedPreferences: SharedPreferences
-//    private lateinit var drawerLayout: DrawerLayout
-//    private lateinit var drawerToggle: ActionBarDrawerToggle
-//    private lateinit var userViewModel: UserViewModel
-//    private lateinit var workspaceViewModel: WorkspaceViewModel
-//    private lateinit var citizenViewModel: CitizenViewModel
-//    private lateinit var networkSynchronizeWorkspace: NetworkSynchronizeWorkspace
-//    private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
-//    private lateinit var userModel: UserModel
-//    private lateinit var database: MyAppDatabase
-//    private val networkChangeReceiver = NetworkChangeReceiver()
-//    private var workspaceId: String = ""
-//    private var userId: String = ""
-//    private var isReceiverRegistered = false
-//    private val uiUpdateReceiver = object : BroadcastReceiver() {
-//        override fun onReceive(context: Context?, intent: Intent?) {
-//            when (intent?.action) {
-//                "DATA_SYNCHRONIZED" -> {
-//                    println("No data sync")
-//                }
-//
-//                else -> println("broadcast inesperado!")
-//            }
-//        }
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        if (drawerToggle.onOptionsItemSelected(item)) {
-//            return true
-//        }
-//        return super.onOptionsItemSelected(item)
-//    }
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
-//        binding = ActivityWorkspaceMainBinding.inflate(layoutInflater)
-//        setContentView(binding.root)
-//
-//        StyleSystemManager.changeNavigationBarStyleWithColor(this, window)
-//
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-//            insets
-//        }
-//
-//        database = (application as MyApplication).database
-//        getUserAndWorkspaceData()
-//        startTools()
-//        initializeApp()
-//
-//        if (!isReceiverRegistered) {
-//            val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-//
-//            networkSynchronizeWorkspace =
-//                NetworkSynchronizeWorkspace(workspaceViewModel, workspaceId)
-//            networkSynchronizeUser =
-//                NetworkSynchronizeUser(userViewModel, sharedPreferences, userId)
-//
-//            registerReceiver(networkSynchronizeWorkspace, intentFilter)
-//            registerReceiver(networkSynchronizeUser, intentFilter)
-//
-//            LocalBroadcastManager.getInstance(this).registerReceiver(
-//                uiUpdateReceiver,
-//                IntentFilter().apply {
-//                    addAction("DATA_SYNCHRONIZED")
-//                }
-//            )
-//            isReceiverRegistered = true
-//        }
-//    }
-//
-//    override fun onResume() {
-//        super.onResume()
-////        val menu = binding.topNavMenuView.menu
-////        for (i in 0 until menu.size()) {
-////            val menuItem = menu.getItem(i)
-////            menuItem.isChecked = false
-////        }
-//    }
-//
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        if (isReceiverRegistered) {
-//            try {
-//                unregisterReceiver(networkSynchronizeWorkspace)
-//                unregisterReceiver(networkSynchronizeUser)
-//
-//                LocalBroadcastManager.getInstance(this).unregisterReceiver(uiUpdateReceiver)
-//            } catch (e: Exception) {
-//                // Tratar exceções, se necessário
-//            } finally {
-//                isReceiverRegistered = false
-//            }
-//        }
-//    }
-//
-//    private fun initializeApp() {
-//        verifyStatusUserAndWorkspaceData()
-//        initializeFragment()
-//    }
-//
-//    private fun initializeFragment() {
-//        if (!isFinishing && !isDestroyed) {
-//            loadFragment(
-//                WorkspaceMainFragment.newInstance(workspaceId, userId),
-//                false
-//            )
-//        }
-//    }
-//
-//    private fun startTools() {
-//        sharedPreferences = getSharedPreferences("login", Context.MODE_PRIVATE)
-//
-//        val userDao = database.userDao()
-//        val userRepository = UserRepository(userDao)
-//        val userFactory = UserViewModelFactory(userRepository)
-//        userViewModel = ViewModelProvider(this, userFactory)[UserViewModel::class.java]
-//
-//        val workspaceDao = database.workspaceDao()
-//        val workspaceRepository = WorkspaceRepository(workspaceDao)
-//        val workspaceFactory = WorkspaceViewModelFactory(workspaceRepository)
-//        workspaceViewModel =
-//            ViewModelProvider(this, workspaceFactory)[WorkspaceViewModel::class.java]
-//
-//        val citizenDao = database.citizenDao()
-//        val citizenRepository = CitizenRepository(citizenDao)
-//        val citizenFactory = CitizenViewModelFactory(citizenRepository)
-//        citizenViewModel = ViewModelProvider(this, citizenFactory)[CitizenViewModel::class.java]
-//    }
-//
-//    private fun getUserAndWorkspaceData() {
-//        userId = intent.getStringExtra("userId") ?: ""
-//        workspaceId = intent.getStringExtra("workspaceId") ?: ""
-//    }
-//
-//    private fun verifyStatusUserAndWorkspaceData() {
-//        println("workspaceId = $workspaceId")
-//        println("userId = $userId")
-//
-//        if (userId.isEmpty() || workspaceId.isEmpty()) {
-//            showErrorAndFinish()
-//            return
-//        }
-//
-//        loadUserData()
-//    }
-//
-//    private fun loadUserData() {
-//        if (networkChangeReceiver.isNetworkConnected(this)) {
-//            userViewModel.loadUserModel(userId)
-//            userViewModel.userModel.observe(this, Observer { data ->
-//                userModel = data
-//                configureDrawerLayoutAndNavigationView()
-//                Log.d("user Model", "user: ${data.id}")
-//            })
-//            WorkManagerUtil.scheduleCitizenSync(this, workspaceId)
-//        } else {
-//            userViewModel.loadUserRoom(userId) { data ->
-//                if (data != null) {
-//                    userModel = User.toUserModel(data)
-//                    configureDrawerLayoutAndNavigationView()
-//                } else {
-//                    showErrorAndFinish()
-//                }
-//            }
-//        }
-//    }
-//
-//    private fun showErrorAndFinish() {
-//        Toast.makeText(
-//            this,
-//            "Erro ao acessar o grupo de trabalho. Reporte esse problema!",
-//            Toast.LENGTH_SHORT
-//        ).show()
-//        Log.d("Teste Workspace Main Activity", "Id do workspace ou user está nulo!")
-//        finish()
-//    }
-//
-//    private fun configureDrawerLayoutAndNavigationView() {
-//        DrawerConfigurator(
-//            this,
-//            userModel,
-//            binding.drawerLayout.id,
-//            binding.topNavMenuView.id,
-//            mapOf("userId" to userId, "workspaceId" to workspaceId),
-//        ).configureDrawerAndNavigation()
-//    }
-//
-//    private fun loadFragment(fragment: Fragment, addToBack: Boolean) {
-//        if (!isFinishing && !isDestroyed) {
-//            val transition = supportFragmentManager.beginTransaction()
-//            transition.replace(R.id.fragment_container_citizens, fragment)
-//            if (addToBack) {
-//                transition.addToBackStack(null)
-//            }
-//            transition.commit()
-//        }
-//    }
-//
-//    override fun onBackPressed() {
-//        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-//            drawerLayout.closeDrawer(GravityCompat.START)
-//        } else if (supportFragmentManager.backStackEntryCount > 0) {
-//            supportFragmentManager.popBackStack()
-//        } else {
-//            super.onBackPressed()
-//        }
-//    }
-//}

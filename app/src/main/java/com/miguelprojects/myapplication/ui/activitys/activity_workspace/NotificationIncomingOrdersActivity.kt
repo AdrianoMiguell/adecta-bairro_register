@@ -372,7 +372,7 @@ class NotificationIncomingOrdersActivity : AppCompatActivity() {
         managerProgressBar(false)
         binding.textEmptyList.visibility = if (isNotEmpty) View.GONE else View.VISIBLE
 
-        binding.textInitial.visibility = if (isNotEmpty && isConnect) View.VISIBLE else View.GONE
+//        binding.textInitial.visibility = if (isNotEmpty && isConnect) View.VISIBLE else View.GONE
         binding.recycleviewNotificationIncomingOrders.visibility =
             if (isConnect && isNotEmpty) View.VISIBLE else View.GONE
 

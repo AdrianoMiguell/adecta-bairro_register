@@ -32,7 +32,6 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 
 object UserSessionManager {
-
     fun checkIfLogged(activity: AppCompatActivity) {
         println("Está no checkiflogged")
         val sharedPreferences = activity.getSharedPreferences("login", Context.MODE_PRIVATE)

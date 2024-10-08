@@ -151,6 +151,8 @@ class WorkspaceMembersActivity : AppCompatActivity() {
                 binding.buttonRemoveUsers.visibility = View.GONE
             }
 
+            binding.textTitleWorkspace.text = it.name
+
             loadUsersWorkspace()
         })
         workspaceViewModel.loadData(workspaceId)

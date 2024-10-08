@@ -84,20 +84,13 @@ class HomeFragment : Fragment() {
                         }
                     }
 
-                    "DATA_OFF_SYNCHRONIZED" -> {
-                        progressBarLayoutManager(true)
-                        if (isAdded) {
-                            println("Execultando DATA_OFF_SYNCHRONIZED apos verificação de isAdded")
-                            loadWorkspace()
-                        }
-                    }
-
-                    "DATA_SYNCHRONIZED_USER" -> {
-                        val resUserId = intent.getStringExtra("userId") ?: ""
-                        if (userId.isEmpty() && resUserId.isNotEmpty()) {
-                            userId = resUserId
-                        }
-                    }
+//                    "DATA_OFF_SYNCHRONIZED" -> {
+//                        progressBarLayoutManager(true)
+//                        if (isAdded) {
+//                            println("Execultando DATA_OFF_SYNCHRONIZED apos verificação de isAdded")
+//                            loadWorkspace()
+//                        }
+//                    }
 
                     else -> {
                         println("broadcast inesperado!")
@@ -111,7 +104,6 @@ class HomeFragment : Fragment() {
             addAction("DATA_SYNCHRONIZED")
             addAction("DATA_OFF_SYNCHRONIZED")
             addAction("DATA_SYNCHRONIZED_USER")
-            addAction("DATA_SYNCHRONIZED_WORKSPACE")
         }
 
         LocalBroadcastManager.getInstance(requireContext())

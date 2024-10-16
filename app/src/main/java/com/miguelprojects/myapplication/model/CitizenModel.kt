@@ -70,6 +70,16 @@ data class CitizenModel(
         // Escreva outros campos conforme necessário
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CitizenModel) return false
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+
     override fun describeContents(): Int {
         return 0
     }

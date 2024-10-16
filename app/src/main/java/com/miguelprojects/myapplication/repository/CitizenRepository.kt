@@ -165,6 +165,7 @@ class CitizenRepository(private val citizenDao: CitizenDao) {
         reference.get().addOnSuccessListener { snapshot ->
             val citizen = snapshot.getValue(CitizenModel::class.java)
             if (citizen != null) {
+                println("Dados : $citizen")
                 callback(citizen)
             } else {
                 callback(CitizenModel())
@@ -895,7 +896,7 @@ class CitizenRepository(private val citizenDao: CitizenDao) {
                 }
 
                 // Verificar se o modelo está vazio
-                if (!workspace.modelIsNotEmpty()) {
+                if (!workspace.modelIsEmpty()) {
                     Log.e(
                         "saveWorkspaceToFirebase",
                         "Modelo de workspace está vazio ou com dados faltando"

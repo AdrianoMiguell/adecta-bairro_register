@@ -52,7 +52,7 @@ data class Workspace(
         parcel.writeString(state)
         parcel.writeString(city)
         parcel.writeString(neighborhood)
-        parcel.writeByte(if (public == true) 1 else 0)
+        parcel.writeByte(if (public) 1 else 0)
         parcel.writeString(inviteCode)
         parcel.writeString(creator)
         parcel.writeByte(if (needsSync) 1 else 0)

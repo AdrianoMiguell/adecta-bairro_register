@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.activitys.users.ChooseImageProfileActivity">
+
+    <include
+        android:id="@+id/layout_navbar_top"
+        layout="@layout/navbar_view_top"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="70dp" />
+
+    <TextView
+        android:id="@+id/text_initial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout_navbar_top"
+        android:textColor="@color/tert_ebony_clay"
+        android:text="Escolha o seu avatar:"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="15dp"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/button_choose"
+        android:layout_below="@id/text_initial">
+
+        <GridLayout
+            android:id="@+id/gridLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:columnCount="2"
+            android:padding="15dp"
+            android:rowCount="4">
+
+            <ImageView
+                android:id="@+id/image_1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:layout_margin="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="person"
+                android:src="@drawable/profile_avatar_1" />
+
+            <ImageView
+                android:id="@+id/image_2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:layout_margin="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="person"
+                android:src="@drawable/profile_avatar_2" />
+
+            <ImageView
+                android:id="@+id/image_3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:layout_margin="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="person"
+                android:src="@drawable/profile_avatar_3" />
+
+            <ImageView
+                android:id="@+id/image_4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:layout_margin="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="person"
+                android:src="@drawable/profile_avatar_4" />
+
+            <ImageView
+                android:id="@+id/image_5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:layout_margin="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="person"
+                android:src="@drawable/profile_avatar_5" />
+
+            <ImageView
+                android:id="@+id/image_6"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:layout_margin="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="person"
+                android:src="@drawable/profile_avatar_6" />
+
+            <ImageView
+                android:id="@+id/image_7"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:layout_margin="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="person"
+                android:src="@drawable/profile_avatar_7" />
+
+            <ImageView
+                android:id="@+id/image_8"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnWeight="1"
+                android:layout_margin="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="person"
+                android:src="@drawable/profile_avatar_8" />
+
+        </GridLayout>
+    </ScrollView>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Selecionar"
+        android:id="@+id/button_choose"
+        android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginVertical="15dp"
+        />
+</RelativeLayout>

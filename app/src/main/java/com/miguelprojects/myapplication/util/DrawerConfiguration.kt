@@ -1,6 +1,8 @@
 package com.miguelprojects.myapplication.util
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,39 +29,58 @@ import com.miguelprojects.myapplication.ui.activitys.users.UserSupportActivity
 
 class DrawerConfigurator(
     private val activity: AppCompatActivity,
-    private val userModel: UserModel,
     private val drawerLayoutId: Int,
     private val navigationViewId: Int,
     kitMapValuesString: Map<String, String>
 ) {
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
     private lateinit var drawerToggle: ActionBarDrawerToggle
     private lateinit var usernameTextView: TextView
     private lateinit var emailTextView: TextView
+    private lateinit var profileAvatarImage: ImageView
     private lateinit var headerView: View
     private lateinit var buttonClose: ImageView
+    private var userModel = UserModel()
     private val networkChangeReceiver = NetworkChangeReceiver()
     private val userId = kitMapValuesString["userId"]
     private val workspaceId = kitMapValuesString["workspaceId"]
 
     fun configureDrawerAndNavigation() {
         initializeValues()
+
+        saveViewValues()
         updateUserData()
         startFunctions()
     }
 
     fun configureSimpleTopNavigation() {
+        initializeValues()
+
         buttonClose = activity.findViewById(R.id.button_open_menu)
         buttonClose.setImageResource(R.drawable.baseline_arrow_back_24)
         buttonClose.setOnClickListener {
             activity.finish()
         }
+        activity.findViewById<ImageView>(R.id.image_account)
+            ?.setImageResource(UserSessionManager.changeImageProfileAvatar(userModel.avatar, true))
 
         startGeneralOnClickNavigation()
     }
 
     private fun initializeValues() {
+        sharedPreferences = activity.getSharedPreferences("login", Context.MODE_PRIVATE)
+
+        val userId = sharedPreferences.getString("user_id", null).toString()
+        val username = sharedPreferences.getString("username", null).toString()
+        val email = sharedPreferences.getString("email", null).toString()
+        val avatar = sharedPreferences.getInt("avatar", 0)
+
+        userModel = UserModel(userId, username, "", email, avatar)
+    }
+
+    private fun saveViewValues() {
         drawerLayout = activity.findViewById(drawerLayoutId)
         navigationView = activity.findViewById(navigationViewId)
 
@@ -92,6 +113,9 @@ class DrawerConfigurator(
 
         setupDrawerToggle()
         startGeneralOnClickNavigation()
+
+        activity.findViewById<ImageView>(R.id.image_account)
+            ?.setImageResource(UserSessionManager.changeImageProfileAvatar(userModel.avatar, true))
 
         val infoItem = navigationView.menu.findItem(R.id.informacoes_workspace_topnav)
         val usersItem = navigationView.menu.findItem(R.id.users_workspace_topnav)
@@ -126,8 +150,10 @@ class DrawerConfigurator(
     }
 
     private fun updateUserData() {
-        usernameTextView.text = userModel.username
-        emailTextView.text = userModel.email
+        if (userModel.username.isNotEmpty()) {
+            usernameTextView.text = userModel.username
+            emailTextView.text = userModel.email
+        }
     }
 
     private fun setupDrawerToggle() {
@@ -226,7 +252,7 @@ class DrawerConfigurator(
 
     private fun navigateToSupport() {
         closeDrawerWithDelay()
-        if (activity !is SettingActivity) {
+        if (activity !is UserSupportActivity) {
             val extras = Bundle().apply {
                 putString("userId", userId)
             }

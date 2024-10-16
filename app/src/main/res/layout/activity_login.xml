@@ -6,20 +6,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/greenish_white"
+    android:fitsSystemWindows="true"
     android:gravity="top|center_horizontal"
     android:orientation="vertical"
     android:paddingHorizontal="35dp"
-    android:fitsSystemWindows="true"
     tools:context=".ui.activitys.users.LoginActivity">
 
-    <ImageView
+    <LinearLayout
         android:id="@+id/image_logo"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="75dp"
-        android:src="@drawable/logo_bairro_register_dark_transparent" />
+        android:gravity="center"
+        android:orientation="vertical">
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/icon_logo_associacao_tapera" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="50dp"
+            android:text="@string/app_full_name"
+            android:textColor="@color/tert_ebony_clay"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            />
+    </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/layout_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/image_logo"
@@ -84,8 +101,7 @@
                 android:inputType="textPassword"
                 android:outlineProvider="none"
                 android:padding="2.5dp"
-                android:singleLine="false"
-                />
+                android:singleLine="false" />
 
         </LinearLayout>
 
@@ -166,6 +182,8 @@
         android:gravity="center"
         android:text="@string/esqueceu_a_senha" />
 
-    <include android:id="@+id/include_progress_bar" layout="@layout/progress_bar"/>
+    <include
+        android:id="@+id/include_progress_bar"
+        layout="@layout/progress_bar" />
 
 </RelativeLayout>

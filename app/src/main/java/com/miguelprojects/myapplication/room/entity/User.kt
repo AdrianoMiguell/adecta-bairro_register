@@ -15,6 +15,7 @@ data class User(
     val email: String,
     var password: String,
     var salt: String,
+    var avatar: Int = 0,
     var needsSync: Boolean = true // Campo para indicar que precisa ser sincronizado
 ) {
     companion object {
@@ -23,7 +24,8 @@ data class User(
                 id = user.id,
                 username = user.username,
                 fullname = user.fullname,
-                email = user.email
+                email = user.email,
+                avatar = user.avatar,
             )
         }
     }

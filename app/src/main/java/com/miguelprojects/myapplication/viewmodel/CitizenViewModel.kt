@@ -86,6 +86,8 @@ class CitizenViewModel(
 
     fun loadCitizenData(citizenId: String, callback: (Boolean) -> Unit) {
         repository.loadCitizen(citizenId) { citizen ->
+            println("Está no view: ${citizen}")
+
             _citizenModel.value = citizen
             if (citizen.id.isNotEmpty()) {
                 callback(true)
@@ -170,6 +172,9 @@ class CitizenViewModel(
             }
 
             currentList[index] = updatedCitizen
+            if (!updatedCitizen.active) {
+                currentList.removeAt(index)
+            }
             val orderCurrentList = if (orderAlphabet != null && !orderAlphabet) {
                 currentList.sortedByDescending { it.name }
             } else {
@@ -182,16 +187,17 @@ class CitizenViewModel(
     fun removeCitizenInList(removedCitizen: CitizenModel, workspaceId: String) {
         val currentList = _citizenListModel.value.orEmpty().toMutableList()
         val index = currentList.indexOfFirst { it.id == removedCitizen.id }
-        if (index != -1) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val citizenEntity = Citizen.fromCitizenModel(removedCitizen, workspaceId).apply {
-                    needsSync = false
-                    needsUpdate = false
-                    isDelete = false
-                }
-
-                repository.deleteCitizenRoom(citizenEntity)
+        CoroutineScope(Dispatchers.IO).launch {
+            val citizenEntity = Citizen.fromCitizenModel(removedCitizen, workspaceId).apply {
+                needsSync = false
+                needsUpdate = false
+                isDelete = false
             }
+
+            repository.deleteCitizenRoom(citizenEntity)
+        }
+
+        if (index != -1) {
 
             currentList.removeAt(index)
             _citizenListModel.value = currentList

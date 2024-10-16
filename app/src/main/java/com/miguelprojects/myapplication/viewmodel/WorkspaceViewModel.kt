@@ -227,10 +227,10 @@ class WorkspaceViewModel(
         }
     }
 
-    fun deleteWorkspaceRoom(workspace: Workspace) {
+    fun deleteWorkspaceRoom(workspace: Workspace, userId: String) {
         viewModelScope.launch {
             try {
-                repository.deleteWorkspaceRoom(workspace)
+                repository.deleteWorkspaceRoom(workspace, userId)
             } catch (e: Exception) {
                 println("Erro ao executar o loadListDataRoom")
                 return@launch
@@ -244,13 +244,13 @@ class WorkspaceViewModel(
         }
     }
 
-    fun removeWorkspaceInList(removedWorkspace: WorkspaceModel) {
+    fun removeWorkspaceInList(removedWorkspace: WorkspaceModel, userId: String) {
         val currentList = _workspaceListModel.value.orEmpty().toMutableList()
         val index = currentList.indexOfFirst { it.id == removedWorkspace.id }
         if (index != -1) {
             currentList.removeAt(index)
             viewModelScope.launch {
-                repository.deleteWorkspaceWithIdRoom(removedWorkspace.id)
+                repository.deleteWorkspaceWithIdRoom(removedWorkspace.id, userId)
             }
             _workspaceListModel.value = currentList
         }
@@ -313,7 +313,7 @@ class WorkspaceViewModel(
                 val workspaceRemoved = snapshot.getValue(WorkspaceModel::class.java)
                 if (workspaceRemoved != null) {
                     workspaceIds.remove(workspaceRemoved.id)
-                    removeWorkspaceInList(workspaceRemoved)
+                    removeWorkspaceInList(workspaceRemoved, userId)
                 }
             }
 

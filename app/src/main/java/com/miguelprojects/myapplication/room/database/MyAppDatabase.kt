@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.miguelprojects.myapplication.room.dao.CitizenDao
 import com.miguelprojects.myapplication.room.dao.UserDao
@@ -17,7 +16,7 @@ import com.miguelprojects.myapplication.room.entity.WorkspaceAccess
 
 @Database(
     entities = [Citizen::class, Workspace::class, User::class, WorkspaceAccess::class],
-    version = 3,
+    version = 1,
     exportSchema = false
 )
 abstract class MyAppDatabase : RoomDatabase() {
@@ -37,14 +36,14 @@ abstract class MyAppDatabase : RoomDatabase() {
                     MyAppDatabase::class.java,
                     "my_app_database"
                 )
-                    .addMigrations(MIGRATION_2_3)
+//                    .addMigrations(MIGRATION_1_2)
                     .addCallback(object : RoomDatabase.Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
                             addTriggers(db)
                         }
                     })
-//                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
@@ -53,14 +52,14 @@ abstract class MyAppDatabase : RoomDatabase() {
     }
 }
 
-val MIGRATION_2_3 = object : Migration(2, 3) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        // Rename the column isPublic to public
-        database.execSQL("ALTER TABLE Workspace RENAME COLUMN isPublic TO public")
-
-        // If necessary, you can perform other migration steps here
-    }
-}
+//val MIGRATION_2_3 = object : Migration(2, 3) {
+//    override fun migrate(database: SupportSQLiteDatabase) {
+//        // Rename the column isPublic to public
+//        database.execSQL("ALTER TABLE Workspace RENAME COLUMN isPublic TO public")
+//
+//        // If necessary, you can perform other migration steps here
+//    }
+//}
 
 private fun addTriggers(database: SupportSQLiteDatabase) {
     database.execSQL(

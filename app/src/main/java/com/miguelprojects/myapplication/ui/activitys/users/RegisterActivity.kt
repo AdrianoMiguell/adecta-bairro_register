@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -35,6 +36,19 @@ class RegisterActivity : AppCompatActivity() {
     private val networkChangeReceiver = NetworkChangeReceiver()
     private var upPassword = ""
     private var upSalt = ""
+    private var avatarImageResult = 0
+    private val result =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val imageResult = result.data?.getIntExtra("imageResult", 0) ?: 0
+            avatarImageResult = imageResult
+            println("Result = $imageResult")
+
+            if (result.resultCode == IMAGE_CODE) {
+                binding.imageProfileAvatar.setImageResource(
+                    UserSessionManager.changeImageProfileAvatar(imageResult, false)
+                )
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +81,11 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun setEvents() {
+        binding.imageProfileAvatar.setOnClickListener {
+            val intent = Intent(this, ChooseImageProfileActivity::class.java)
+            result.launch(intent)
+        }
+
         binding.buttonRegister.setOnClickListener {
             val name = binding.editName.text.toString()
             val email = binding.editEmail.text.toString()
@@ -76,7 +95,7 @@ class RegisterActivity : AppCompatActivity() {
             if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) {
                 val username = name.split(" ")[0]
 
-                userModel = UserModel("", username, name, email)
+                userModel = UserModel("", username, name, email, avatarImageResult)
 
                 if (password != confirmPassword) {
                     Toast.makeText(
@@ -95,8 +114,10 @@ class RegisterActivity : AppCompatActivity() {
                         userViewModel,
                         email
                     ) { existsEmail ->
+                        println("$email, $existsEmail")
                         if (existsEmail) {
                             messageToast("Usuário já existe!")
+                            binding.buttonRegister.isEnabled = true
                             binding.includeProgressBar.layoutProgressBar.visibility =
                                 View.GONE
                             return@verifyExistsEmailInBases
@@ -203,4 +224,7 @@ class RegisterActivity : AppCompatActivity() {
         element.isChecked = !element.isChecked
     }
 
+    private companion object {
+        private const val IMAGE_CODE = 99
+    }
 }

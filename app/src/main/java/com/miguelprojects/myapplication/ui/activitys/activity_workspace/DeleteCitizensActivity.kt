@@ -1,12 +1,9 @@
 package com.miguelprojects.myapplication.ui.activitys.activity_workspace
 
 import WorkspaceRepository
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,7 +18,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.miguelprojects.myapplication.MyApplication
 import com.miguelprojects.myapplication.R
@@ -32,20 +28,15 @@ import com.miguelprojects.myapplication.factory.CitizenViewModelFactory
 import com.miguelprojects.myapplication.factory.UserViewModelFactory
 import com.miguelprojects.myapplication.factory.WorkspaceViewModelFactory
 import com.miguelprojects.myapplication.model.CitizenModel
-import com.miguelprojects.myapplication.model.UserModel
 import com.miguelprojects.myapplication.model.WorkspaceModel
 import com.miguelprojects.myapplication.repository.CitizenRepository
 import com.miguelprojects.myapplication.repository.UserRepository
 import com.miguelprojects.myapplication.room.database.MyAppDatabase
 import com.miguelprojects.myapplication.room.entity.Citizen
-import com.miguelprojects.myapplication.ui.activitys.MainActivity
 import com.miguelprojects.myapplication.util.ConvertManager
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
-import com.miguelprojects.myapplication.util.NetworkSynchronizeUser
-import com.miguelprojects.myapplication.util.NetworkSynchronizeWorkspace
 import com.miguelprojects.myapplication.util.StyleSystemManager
-import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.viewmodel.CitizenViewModel
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
@@ -57,8 +48,6 @@ class DeleteCitizensActivity : AppCompatActivity() {
     private lateinit var citizenViewModel: CitizenViewModel
     private lateinit var database: MyAppDatabase
     private lateinit var adapter: CitizenListAdapter
-    private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
-    private lateinit var networkSynchronizeWorkspace: NetworkSynchronizeWorkspace
     private lateinit var sharedPreferences: SharedPreferences
     private var isReceiverRegistered = false
     private var workspaceModel = WorkspaceModel()
@@ -68,48 +57,6 @@ class DeleteCitizensActivity : AppCompatActivity() {
     private var listCitizensSelected = mutableListOf<Citizen>()
     private var workspaceId: String = ""
     private var userId: String = ""
-    private val uiUpdateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                "DATA_OFF_SYNCHRONIZED" -> finish()
-                "DATA_SYNCHRONIZED_USER" -> {
-                    if (intent.getStringExtra("userId").isNullOrEmpty()) {
-                        Toast.makeText(
-                            this@DeleteCitizensActivity,
-                            "Sessão Encerrada! Por favor, realize login novamente!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        UserSessionManager.onUserNotFoundOrLogout(
-                            this@DeleteCitizensActivity,
-                            userViewModel
-                        )
-                    }
-                }
-
-                "DATA_SYNCHRONIZED_WORKSPACE" -> {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        if (intent.getStringExtra("workspaceId").isNullOrEmpty()) {
-                            Toast.makeText(
-                                this@DeleteCitizensActivity,
-                                "Sincronização dos dados em andamento!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                            startActivity(
-                                Intent(
-                                    this@DeleteCitizensActivity,
-                                    MainActivity::class.java
-                                ).addFlags(
-                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                )
-                            )
-                            finish()
-                        }
-                    }, 1000)
-                }
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,51 +81,17 @@ class DeleteCitizensActivity : AppCompatActivity() {
 
         DrawerConfigurator(
             this,
-            UserModel(),
             0,
             0,
             mapOf("userId" to userId)
         ).configureSimpleTopNavigation()
 
         setOnClickListeners()
-
-        if (!isReceiverRegistered) {
-            val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-
-            networkSynchronizeWorkspace =
-                NetworkSynchronizeWorkspace(workspaceViewModel, workspaceId)
-            networkSynchronizeUser =
-                NetworkSynchronizeUser(userViewModel, sharedPreferences, userId)
-
-            registerReceiver(networkSynchronizeWorkspace, intentFilter)
-            registerReceiver(networkSynchronizeUser, intentFilter)
-
-            LocalBroadcastManager.getInstance(this).registerReceiver(
-                uiUpdateReceiver,
-                IntentFilter().apply {
-//                    addAction("DATA_SYNCHRONIZED")
-                    addAction("DATA_OFF_SYNCHRONIZED")
-                    addAction("DATA_SYNCHRONIZED_USER")
-                    addAction("DATA_SYNCHRONIZED_WORKSPACE")
-                }
-            )
-            isReceiverRegistered = true
-        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        if (isReceiverRegistered) {
-            try {
-                unregisterReceiver(networkSynchronizeUser)
-            } catch (e: IllegalArgumentException) {
-                // O receptor não estava registrado, não faça nada
-            } finally {
-                isReceiverRegistered = false
-            }
-        }
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(uiUpdateReceiver)
         workspaceViewModel.workspaceModel.removeObservers(this)
         citizenViewModel.citizenListModel.removeObservers(this)
     }
@@ -299,8 +212,8 @@ class DeleteCitizensActivity : AppCompatActivity() {
     private fun initializeRecyclerView() {
         binding.recycleviewCitizen.layoutManager = LinearLayoutManager(this)
         adapter =
-            CitizenListAdapter(citizenList, true, CitizenOnClickListener { _, list ->
-                listCitizensModelSelected = list.toMutableList()
+            CitizenListAdapter(citizenList, true, CitizenOnClickListener { _, selectedList ->
+                listCitizensModelSelected = selectedList.toMutableList()
                 managerViewDataLayout(true)
             })
         binding.recycleviewCitizen.adapter = adapter

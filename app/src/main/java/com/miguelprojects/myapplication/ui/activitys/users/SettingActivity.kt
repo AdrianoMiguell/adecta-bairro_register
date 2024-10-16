@@ -8,12 +8,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -33,7 +33,6 @@ import com.miguelprojects.myapplication.room.entity.User
 import com.miguelprojects.myapplication.ui.activitys.MainActivity
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
-import com.miguelprojects.myapplication.util.NetworkSynchronizeUser
 import com.miguelprojects.myapplication.util.StyleSystemManager
 import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
@@ -45,20 +44,43 @@ class SettingActivity : AppCompatActivity() {
     private lateinit var database: MyAppDatabase
     private lateinit var navigationView: NavigationView
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
     private val networkChangeReceiver = NetworkChangeReceiver()
     private var userSessionManager = UserSessionManager
     private var isReceiverRegistered = false
     private var userId: String = ""
+    private var avatarImageResult = 0
+    private val result =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val imageResult = result.data?.getIntExtra("imageResult", 0) ?: 0
+            avatarImageResult = imageResult
+            println("Result = $imageResult")
+
+            if (result.resultCode == IMAGE_CODE) {
+                userModel.avatar = avatarImageResult
+
+                binding.imageProfileAvatar.setImageResource(
+                    UserSessionManager.changeImageProfileAvatar(imageResult, false)
+                )
+            }
+        }
+
     private val uiUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 "DATA_SYNCHRONIZED_USER" -> {
-                    if(intent.getStringExtra("userId").isNullOrEmpty()){
-                        Toast.makeText(this@SettingActivity, "Sessão Encerrada! Por favor, realize login novamente!", Toast.LENGTH_SHORT).show()
-                        UserSessionManager.onUserNotFoundOrLogout(this@SettingActivity, userViewModel)
+                    if (intent.getStringExtra("userId").isNullOrEmpty()) {
+                        Toast.makeText(
+                            this@SettingActivity,
+                            "Sessão Encerrada! Por favor, realize login novamente!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        UserSessionManager.onUserNotFoundOrLogout(
+                            this@SettingActivity,
+                            userViewModel
+                        )
                     }
                 }
+
                 else -> {}
             }
         }
@@ -84,10 +106,6 @@ class SettingActivity : AppCompatActivity() {
         startTools()
 
         if (!isReceiverRegistered) {
-            val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-
-            networkSynchronizeUser = NetworkSynchronizeUser(userViewModel, sharedPreferences, userId)
-            registerReceiver(networkSynchronizeUser, intentFilter)
 
             LocalBroadcastManager.getInstance(this).registerReceiver(
                 uiUpdateReceiver,
@@ -97,6 +115,19 @@ class SettingActivity : AppCompatActivity() {
                 }
             )
         }
+
+        loadUserData()
+
+        navigationView = findViewById(binding.topNavMenuView.id)
+        navigationView.setCheckedItem(R.id.home_topnav)
+
+        DrawerConfigurator(
+            this,
+            binding.drawerLayout.id,
+            binding.topNavMenuView.id,
+            mapOf("userId" to userId),
+        ).configureDrawerAndNavigation()
+
     }
 
     private fun viewLayoutSetting(status: Boolean) {
@@ -108,25 +139,17 @@ class SettingActivity : AppCompatActivity() {
         binding.layoutProgressBar.visibility = if (status) View.VISIBLE else View.GONE
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        loadUserData()
-        navigationView = findViewById(binding.topNavMenuView.id)
-        navigationView.setCheckedItem(R.id.home_topnav)
-    }
-
     override fun onDestroy() {
+        super.onDestroy()
         if (isReceiverRegistered) {
             try {
-                unregisterReceiver(networkSynchronizeUser)
+                LocalBroadcastManager.getInstance(this).unregisterReceiver(uiUpdateReceiver)
             } catch (e: IllegalArgumentException) {
                 // O receptor não estava registrado, não faça nada
             } finally {
                 isReceiverRegistered = false
             }
         }
-        super.onDestroy()
     }
 
     private fun loadUserData() {
@@ -137,14 +160,6 @@ class SettingActivity : AppCompatActivity() {
                 if (data != null) {
                     userModel = data
                     updateUserData()
-                    DrawerConfigurator(
-                        this,
-                        userModel,
-                        binding.drawerLayout.id,
-                        binding.topNavMenuView.id,
-                        mapOf("userId" to userId),
-                    ).configureDrawerAndNavigation()
-
                     viewProgressBar(false)
                     setClickListeners()
                 } else {
@@ -160,7 +175,6 @@ class SettingActivity : AppCompatActivity() {
                     updateUserData()
                     DrawerConfigurator(
                         this,
-                        userModel,
                         binding.drawerLayout.id,
                         binding.topNavMenuView.id,
                         mapOf("userId" to userId),
@@ -217,12 +231,27 @@ class SettingActivity : AppCompatActivity() {
     }
 
     private fun updateUserData() {
+        avatarImageResult = userModel.avatar
+
         binding.editUsername.setText(userModel.username)
         binding.editFullname.setText(userModel.fullname)
         binding.textEmail.setText(userModel.email)
+
+        binding.imageProfileAvatar.setImageResource(
+            UserSessionManager.changeImageProfileAvatar(
+                userModel.avatar,
+                false
+            )
+        )
     }
 
     private fun setClickListeners() {
+        binding.imageProfileAvatar.setOnClickListener {
+            val intent = Intent(this, ChooseImageProfileActivity::class.java)
+            intent.putExtra("user_id", userId)
+            result.launch(intent)
+        }
+
         binding.buttonLogout.setOnClickListener {
             // Exibir um AlertDialog para confirmar a ação de logout
             val builder = AlertDialog.Builder(this)
@@ -334,10 +363,11 @@ class SettingActivity : AppCompatActivity() {
 
         binding.buttonUpdateUser.setOnClickListener {
             val newUserModel = UserModel(
-                userId ?: userModel.id,
+                userId,
                 binding.editUsername.text.toString(),
                 binding.editFullname.text.toString(),
                 userModel.email,
+                avatarImageResult
             )
 
             val builder = AlertDialog.Builder(this)
@@ -365,6 +395,7 @@ class SettingActivity : AppCompatActivity() {
     private fun updateUserAccount(newUserModel: UserModel) {
         userSessionManager.updateUserAccount(
             this@SettingActivity,
+            sharedPreferences,
             newUserModel,
             userViewModel,
             userId,
@@ -406,213 +437,8 @@ class SettingActivity : AppCompatActivity() {
         // Ocultar o ProgressBar após a transação de fragmento
     }
 
-//    override fun onCreateView(
-//        inflater: LayoutInflater, container: ViewGroup?,
-//        savedInstanceState: Bundle?
-//    ): View? {
-//        // Inflate the layout for this fragment
-//        binding = FragmentSettingsBinding.inflate(inflater, container, false)
-//        return binding.root
-//    }
-//
-//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-//        super.onViewCreated(view, savedInstanceState)
-//
-//        startTools()
-//
-//        if (networkChangeReceiver.isNetworkConnected(requireContext())) {
-//            if (userId.isNullOrEmpty() || offUserId == 0L) {
-//                Log.d(
-//                    "User id, settings",
-//                    "Error. Dados do usuário não carregados do banco!"
-//                )
-//                requireActivity().supportFragmentManager.popBackStack()
-//            }
-//
-//            println(userId)
-//            userViewModel.loadUserModel(userId!!)
-//            userViewModel.userModel.observe(viewLifecycleOwner, Observer { user ->
-//                println(user)
-//                if (user != null) {
-//                    userModel = user
-//                    println(userModel)
-//                    updateUserData()
-//                } else {
-//                    Log.d(
-//                        "User id, settings",
-//                        "Error. Dados do usuário não carregados do banco!"
-//                    )
-//                    requireActivity().supportFragmentManager.popBackStack()
-//                }
-//            })
-//        } else {
-//            userViewModel.loadUserRoom(offUserId!!) { user ->
-//                if (user != null) {
-//                    userModel = User.toUserModel(user)
-//                    println(userModel)
-//                    updateUserData()
-//                } else {
-//                    Log.d(
-//                        "User id, settings",
-//                        "Error. Dados do usuário não carregados do banco!"
-//                    )
-//                    requireActivity().supportFragmentManager.popBackStack()
-//                }
-//            }
-//        }
-//
-//        setClickListeners()
-//    }
-//
-//    private fun startTools() {
-//        userViewModel = ViewModelProvider(requireActivity())[UserViewModel::class.java]
-//    }
-//
-//    private fun updateUserData() {
-//        binding.editUsername.setText(userModel.username)
-//        binding.editFullname.setText(userModel.fullname)
-//        binding.textEmail.setText(userModel.email)
-//    }
-//
-//    private fun setClickListeners() {
-//        binding.buttonLogout.setOnClickListener {
-//            // Exibir um AlertDialog para confirmar a ação de logout
-//            val builder = AlertDialog.Builder(requireContext())
-//            builder.setTitle("Logout")
-//            builder.setMessage("Você tem certeza que deseja sair?")
-//
-//            // Adicionar botões ao AlertDialog
-//            builder.setPositiveButton("Sim") { dialog, which ->
-//                binding.layoutSettings.animate()
-//                    .alpha(0.0f)
-//                    .setDuration(250)
-//                    .setListener(object : AnimatorListenerAdapter() {
-//                        override fun onAnimationEnd(animation: Animator) {
-//                            super.onAnimationEnd(animation)
-//                            // Ação de logout
-//                            userSessionManager.onUserNotFoundOrLogout(
-//                                requireActivity() as AppCompatActivity,
-//                                userViewModel
-//                            )
-//                            // Mostrar um Toast confirmando a ação
-//                            Toast.makeText(
-//                                requireContext(),
-//                                "Você saiu de sua conta!",
-//                                Toast.LENGTH_SHORT
-//                            )
-//                                .show()
-//                        }
-//                    })
-//
-//            }
-//            builder.setNegativeButton("Não") { dialog, which ->
-//                // Fechar o dialog sem fazer nada
-//                dialog.dismiss()
-//            }
-//
-//            // Mostrar o AlertDialog
-//            builder.show()
-//        }
-//
-//        binding.buttonDeleteAccount.setOnClickListener {
-//            val builder = AlertDialog.Builder(requireContext())
-//            builder.setTitle("Deletar conta")
-//            builder.setMessage("Você tem certeza que deseja deletar a conta atual?")
-//
-//            // Adicionar botões ao AlertDialog
-//            builder.setPositiveButton("Sim") { dialog, which ->
-//                // Ação de logout
-//                loadFragment(
-//                    UpdateAndDeleteUserFragment.newInstance(
-//                        userId!!,
-//                        offUserId!!,
-//                        userModel,
-//                        UserModel(),
-//                        "delete"
-//                    ), true
-//                )
-//                // Mostrar um Toast confirmando a ação
-//                Toast.makeText(
-//                    requireContext(),
-//                    "Confirme a realização dessa ação!",
-//                    Toast.LENGTH_SHORT
-//                )
-//                    .show()
-//            }
-//            builder.setNegativeButton("Não") { dialog, which ->
-//                // Fechar o dialog sem fazer nada
-//                dialog.dismiss()
-//            }
-//
-//            // Mostrar o AlertDialog
-//            builder.show()
-//        }
-//
-//        binding.buttonUpdateUser.setOnClickListener {
-//            val newUserModel = UserModel(
-//                userId ?: userModel.id,
-//                binding.editUsername.text.toString(),
-//                binding.editFullname.text.toString(),
-//                userModel.email,
-//                offUserId ?: userModel.offUserId
-//            )
-//
-//            val builder = AlertDialog.Builder(requireContext())
-//            builder.setTitle("Atualizar dados da conta")
-//            builder.setMessage("Você tem certeza que deseja atualizar a conta atual?")
-//
-//            // Adicionar botões ao AlertDialog
-//            builder.setPositiveButton("Sim") { dialog, which ->
-//                updateUserAccount(newUserModel)
-//            }
-//            builder.setNegativeButton("Não") { dialog, which ->
-//                // Fechar o dialog sem fazer nada
-//                dialog.dismiss()
-//            }
-//
-//            // Mostrar o AlertDialog
-//            builder.show()
-//        }
-//    }
-//
-//    fun updateUserAccount(newUserModel: UserModel) {
-//        userSessionManager.updateUserAccount(
-//            requireActivity() as AppCompatActivity,
-//            newUserModel!!,
-//            userViewModel,
-//            offUserId!!,
-//            userId!!,
-//        ) { res, message ->
-//            if (res) {
-//                println("Processo concluido com sucesso!")
-//                binding.layoutSettings.animate()
-//                    .alpha(0.0f)
-//                    .setDuration(250)
-//                    .setListener(object : AnimatorListenerAdapter() {
-//                        override fun onAnimationEnd(animation: Animator) {
-//                            super.onAnimationEnd(animation)
-//
-//                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-//                            val intent = requireActivity().intent
-//                            startActivity(intent)
-//                        }
-//                    })
-//            } else {
-//                println("Erro no processo!")
-//                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-//            }
-//        }
-//    }
-//
-//    private fun loadFragment(fragment: Fragment, addToBack: Boolean) {
-//        // Carregar o fragmento fornecido no container
-//        val transaction = requireActivity().supportFragmentManager.beginTransaction()
-//        transaction.replace(R.id.fragment_container, fragment)
-//        if (addToBack) {
-//            transaction.addToBackStack(null) // Adicionar a transação ao back stack (opcional)
-//        }
-//        transaction.commit()
-//        // Ocultar o ProgressBar após a transação de fragmento
-//    }
 
+    private companion object {
+        private const val IMAGE_CODE = 99
+    }
 }

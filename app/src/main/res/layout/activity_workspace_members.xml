@@ -14,11 +14,11 @@
         android:layout_width="match_parent"
         android:layout_height="70dp" />
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingHorizontal="40dp"
+        android:paddingHorizontal="30dp"
         android:paddingVertical="25dp">
 
         <LinearLayout
@@ -26,6 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:layout_alignParentTop="true"
             android:orientation="horizontal">
             <ImageView
                 android:id="@+id/image_initial_workspace"
@@ -52,14 +53,17 @@
             android:id="@+id/recycleview_notification_incoming_orders"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/text_initial"
+            android:layout_below="@id/layout_initial_workspace"
+            android:layout_above="@id/layout_request_buttons"
             android:layout_marginTop="10dp"
             android:padding="0dp" />
 
         <LinearLayout
+            android:id="@+id/layout_request_buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:layout_alignParentBottom="true"
             android:gravity="end|center_vertical">
             <Button
                 android:id="@+id/button_remove_users"
@@ -71,7 +75,7 @@
                 android:enabled="false"
                 android:text="Remover"
                 android:textSize="11dp"
-                android:visibility="gone"/>
+                android:visibility="visible"/>
         </LinearLayout>
-    </LinearLayout>
+    </RelativeLayout>
 </LinearLayout>

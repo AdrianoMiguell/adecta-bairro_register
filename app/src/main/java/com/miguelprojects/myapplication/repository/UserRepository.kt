@@ -49,6 +49,7 @@ class UserRepository(private val userDao: UserDao) {
                         for (userSnapshot in dataSnapshot.children) {
                             val user = userSnapshot.getValue(UserModel::class.java)
                             if (user != null) {
+                                println("Usuario existente: $user")
                                 callback(true)
                             }
                             return

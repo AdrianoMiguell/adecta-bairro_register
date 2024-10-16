@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -33,10 +32,7 @@ import com.miguelprojects.myapplication.room.entity.User
 import com.miguelprojects.myapplication.ui.fragments.workspace.WorkspaceMainFragment
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
-import com.miguelprojects.myapplication.util.NetworkSynchronizeUser
-import com.miguelprojects.myapplication.util.NetworkSynchronizeWorkspace
 import com.miguelprojects.myapplication.util.StyleSystemManager
-import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.util.WorkManagerUtil
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
@@ -44,62 +40,64 @@ import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
 class WorkspaceMainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityWorkspaceMainBinding
     private lateinit var sharedPreferences: SharedPreferences
-//    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var userViewModel: UserViewModel
+    private lateinit var workspaceViewModel: WorkspaceViewModel
     private lateinit var drawerToggle: ActionBarDrawerToggle
     private lateinit var database: MyAppDatabase
-    private lateinit var networkSynchronizeWorkspace: NetworkSynchronizeWorkspace
-    private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
     private var userModel = UserModel()
     private val networkChangeReceiver = NetworkChangeReceiver()
     private var workspaceId: String = ""
     private var userId: String = ""
     private var isReceiverRegistered = false
+    private var alreadyInit = false
+
 
     private val uiUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                "DATA_SYNCHRONIZED" -> println("No data sync")
-                "DATA_SYNCHRONIZED_USER" -> {
-                    if(intent.getStringExtra("userId").isNullOrEmpty()){
-                        Toast.makeText(this@WorkspaceMainActivity, "Sessão Encerrada! Por favor, realize login novamente!", Toast.LENGTH_SHORT).show()
-                        UserSessionManager.onUserNotFoundOrLogout(this@WorkspaceMainActivity, userViewModel)
-                    }
+                "DATA_SYNCHRONIZED", "DATA_OFF_SYNCHRONIZED" -> {
+                    initializeApp()
                 }
                 else -> println("Broadcast inesperado!")
             }
         }
     }
 
-    private val userViewModel: UserViewModel by lazy {
-        val userDao = database.userDao()
-        val userRepository = UserRepository(userDao)
-        val userFactory = UserViewModelFactory(userRepository)
-        ViewModelProvider(this, userFactory)[UserViewModel::class.java]
-    }
-
-    private val workspaceViewModel: WorkspaceViewModel by lazy {
-        val workspaceDao = database.workspaceDao()
-        val workspaceRepository = WorkspaceRepository(workspaceDao)
-        val workspaceFactory = WorkspaceViewModelFactory(workspaceRepository)
-        ViewModelProvider(this, workspaceFactory)[WorkspaceViewModel::class.java]
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityWorkspaceMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         enableEdgeToEdge()
-        StyleSystemManager.changeNavigationBarStyleWithColor(this, window)
 
         setupInsets()
+
+        StyleSystemManager.changeNavigationBarStyleWithColor(this, window)
+
         initializeDatabase()
         initializeSharedPreferences()
+
+        startTools()
 
         getUserAndWorkspaceData()
         initializeApp()
 
         registerNetworkReceivers()
+    }
+
+    private fun startTools() {
+        val userDao = database.userDao()
+        val userRepository = UserRepository(userDao)
+        val userFactory = UserViewModelFactory(userRepository)
+        userViewModel = ViewModelProvider(this, userFactory)[UserViewModel::class.java]
+
+        val workspaceDao = database.workspaceDao()
+        val workspaceRepository = WorkspaceRepository(workspaceDao)
+        val workspaceFactory = WorkspaceViewModelFactory(workspaceRepository)
+
+        workspaceViewModel =
+            ViewModelProvider(this, workspaceFactory)[WorkspaceViewModel::class.java]
     }
 
     private fun setupInsets() {
@@ -120,22 +118,11 @@ class WorkspaceMainActivity : AppCompatActivity() {
 
     private fun registerNetworkReceivers() {
         if (!isReceiverRegistered) {
-            val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-
-            networkSynchronizeWorkspace =
-                NetworkSynchronizeWorkspace(workspaceViewModel, workspaceId)
-            networkSynchronizeUser =
-                NetworkSynchronizeUser(userViewModel, sharedPreferences, userId)
-
-            registerReceiver(networkSynchronizeWorkspace, intentFilter)
-            registerReceiver(networkSynchronizeUser, intentFilter)
-
             LocalBroadcastManager.getInstance(this).registerReceiver(
                 uiUpdateReceiver,
                 IntentFilter().apply {
                     addAction("DATA_SYNCHRONIZED")
-                    addAction("DATA_SYNCHRONIZED_USER")
-                    addAction("DATA_SYNCHRONIZED_WORKSPACE")
+                    addAction("DATA_OFF_SYNCHRONIZED")
                 }
             )
             isReceiverRegistered = true
@@ -150,8 +137,6 @@ class WorkspaceMainActivity : AppCompatActivity() {
     private fun unregisterReceivers() {
         if (isReceiverRegistered) {
             try {
-                unregisterReceiver(networkSynchronizeWorkspace)
-                unregisterReceiver(networkSynchronizeUser)
                 LocalBroadcastManager.getInstance(this).unregisterReceiver(uiUpdateReceiver)
             } catch (e: Exception) {
                 // Tratar exceções, se necessário
@@ -163,7 +148,10 @@ class WorkspaceMainActivity : AppCompatActivity() {
 
     private fun initializeApp() {
         verifyStatusUserAndWorkspaceData()
-        initializeFragment()
+        if (!alreadyInit) {
+            initializeFragment()
+            alreadyInit = true
+        }
     }
 
     private fun initializeFragment() {
@@ -181,6 +169,7 @@ class WorkspaceMainActivity : AppCompatActivity() {
         if (userId.isEmpty() || workspaceId.isEmpty()) {
             showErrorAndFinish()
         } else {
+            configureDrawerLayoutAndNavigationView()
             loadUserData()
         }
     }
@@ -189,15 +178,17 @@ class WorkspaceMainActivity : AppCompatActivity() {
         if (networkChangeReceiver.isNetworkConnected(this)) {
             userViewModel.loadUserModel(userId)
             userViewModel.userModel.observe(this, Observer { data ->
-                userModel = data
-                configureDrawerLayoutAndNavigationView()
+                if (data != null) {
+                    userModel = data
+                } else {
+                    showErrorAndFinish()
+                }
             })
             WorkManagerUtil.scheduleCitizenSync(this, userId, workspaceId)
         } else {
             userViewModel.loadUserRoom(userId) { data ->
                 if (data != null) {
                     userModel = User.toUserModel(data)
-                    configureDrawerLayoutAndNavigationView()
                 } else {
                     showErrorAndFinish()
                 }
@@ -217,7 +208,6 @@ class WorkspaceMainActivity : AppCompatActivity() {
     private fun configureDrawerLayoutAndNavigationView() {
         DrawerConfigurator(
             this,
-            userModel,
             binding.drawerLayout.id,
             binding.topNavMenuView.id,
             mapOf("userId" to userId, "workspaceId" to workspaceId),

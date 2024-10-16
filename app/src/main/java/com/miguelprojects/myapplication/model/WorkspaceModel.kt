@@ -29,7 +29,7 @@ data class WorkspaceModel(
         parcel.readByte() != 0.toByte(),
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        parcel.readHashMap(Boolean::class.java.classLoader) as MutableMap<String, Boolean>
+        parcel.readHashMap(Boolean::class.java.classLoader) as MutableMap<String, Boolean> ?: mutableMapOf()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -117,7 +117,7 @@ data class WorkspaceModel(
         )
     }
 
-    fun modelIsNotEmpty(): Boolean {
+    fun modelIsEmpty(): Boolean {
         return name.isEmpty() &&
                 description.isEmpty() &&
                 cep.isEmpty() &&
@@ -125,7 +125,7 @@ data class WorkspaceModel(
                 city.isEmpty() &&
                 neighborhood.isEmpty() &&
                 inviteCode.isEmpty() &&
-                creator.isEmpty() &&
-                userIds.isEmpty()
+                creator.isEmpty()
+//                userIds.isEmpty()
     }
 }

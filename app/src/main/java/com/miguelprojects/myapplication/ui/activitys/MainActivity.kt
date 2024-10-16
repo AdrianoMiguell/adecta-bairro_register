@@ -2,9 +2,7 @@ package com.miguelprojects.myapplication.ui.activitys
 
 import WorkspaceRepository
 import android.content.Context
-import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -34,7 +32,6 @@ import com.miguelprojects.myapplication.ui.fragments.HomeEmptyFragment
 import com.miguelprojects.myapplication.ui.fragments.HomeFragment
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
-import com.miguelprojects.myapplication.util.NetworkSynchronizeUser
 import com.miguelprojects.myapplication.util.StyleSystemManager
 import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.util.WorkManagerUtil
@@ -42,17 +39,8 @@ import com.miguelprojects.myapplication.viewmodel.UserViewModel
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
 
 class MainActivity : AppCompatActivity() {
-
-    //    TODO("Colocar criptografia nos dados salvos offline")
-//    TODO("Fazer a página de suporte")
-//    TODO("Colocar novo campo "email do citizen" e lógica para enviar mensagem para o email ou um sms para o numero com as diretrizes de segurança")
-//    TODO("Finalizar a atualização online dos dados do usuário")
-
-//    TODO("Fazer activity de Suporte")
-
     //    Estou testando a situação em que o usuario conseguiu ser logado no firebase, mas não no banco.
     private lateinit var binding: ActivityMainBinding
-    private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
     private lateinit var userViewModel: UserViewModel
     private lateinit var workspaceViewModel: WorkspaceViewModel
     private lateinit var navigationView: NavigationView
@@ -62,19 +50,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var synchronizationTopnavItem: MenuItem
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var database: MyAppDatabase
-    private lateinit var networkChangeReceiver: NetworkChangeReceiver
+    private val networkChangeReceiver = NetworkChangeReceiver()
     private var isInitializeDrawer = false
     private var workspaceList = mutableListOf<WorkspaceModel>()
     private var userModel = UserModel()
     private var userId: String = ""
-    private var isReceiverRegistered = false
-    private var dataSynchronized = false
-    private var initWorkspaceAccessObserver = false
-    private var initWorkspaceModelObserver = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Código específico para Android 10 (API 29) ou mais recente
             println("Entrou aqui no Main | Código específico para Android 10 (API 29) ou mais recente")
@@ -94,7 +78,6 @@ class MainActivity : AppCompatActivity() {
         database = (application as MyApplication).database
 
         StyleSystemManager.changeNavigationBarStyleWithColor(this, window)
-//        progressBarLayoutManager(false)
 
         startTools()
 
@@ -102,41 +85,16 @@ class MainActivity : AppCompatActivity() {
 
         loadUserIds()
 
-        if (!isReceiverRegistered) {
-            val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-
-            networkChangeReceiver = NetworkChangeReceiver()
-            networkSynchronizeUser =
-                NetworkSynchronizeUser(userViewModel, sharedPreferences, userId)
-
-            registerReceiver(networkSynchronizeUser, intentFilter)
-
-            isReceiverRegistered = true
+        if (!isInitializeDrawer) {
+            initializeDrawer()
         }
 
         loadFragment(
             HomeFragment.newInstance(userId),
             false
         )
-
-//        loadUserAndWorkspaces()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-//        workspaceViewModel.workspaceListModel.removeObservers(this)
-//        workspaceViewModel.workspaceListRoom.removeObservers(this)
-
-        if (isReceiverRegistered) {
-            try {
-                unregisterReceiver(networkSynchronizeUser)
-            } catch (e: IllegalArgumentException) {
-                // O receptor não estava registrado, não faça nada
-            } finally {
-                isReceiverRegistered = false
-            }
-        }
-    }
 
     override fun onResume() {
         super.onResume()
@@ -148,11 +106,6 @@ class MainActivity : AppCompatActivity() {
 //        // Mover a lógica de carregamento de dados e fragmentos para onResume
 //        userViewModel.userModel.removeObservers(this)
         loadUserAndWorkspaces()
-
-        // Inicializar o Drawer se ainda não foi feito
-        if (!isInitializeDrawer) {
-            initializeDrawer()
-        }
     }
 
     private fun startTools() {
@@ -253,25 +206,19 @@ class MainActivity : AppCompatActivity() {
     private fun initializeDrawer() {
         DrawerConfigurator(
             this,
-            userModel,
             binding.drawerLayout.id,
             binding.topNavMenuView.id,
-            mapOf("userId" to userId!!),
+            mapOf("userId" to userId),
         ).configureDrawerAndNavigation()
     }
 
     private fun loadUserAndWorkspaces() {
-//        progressBarLayoutManager(false)
 
         println("loadUserAndWorkspaces")
         if (networkChangeReceiver.isNetworkConnected(this)) {
             userViewModel.userModel.observe(this, Observer { user ->
                 userModel = user
                 println("userViewModel.userModel.observe")
-//                loadWorkspace()
-                if (!isInitializeDrawer) {
-                    initializeDrawer()
-                }
                 WorkManagerUtil.scheduleWorkspaceSync(this, userId)
                 userViewModel.userModel.removeObservers(this)
             })
@@ -281,10 +228,6 @@ class MainActivity : AppCompatActivity() {
             userViewModel.loadUserRoom(userId) { user ->
                 if (user != null) {
                     userModel = User.toUserModel(user)
-//                    loadWorkspace()
-                    if (!isInitializeDrawer) {
-                        initializeDrawer()
-                    }
                 } else {
                     Log.d(
                         "UserSessionManager",
@@ -309,11 +252,6 @@ class MainActivity : AppCompatActivity() {
         usernameTextView.text = userModel.username
         emailTextView.text = userModel.email
     }
-//
-//    private fun progressBarLayoutManager(status: Boolean) {
-//        binding.fragmentContainer.visibility = if (status) View.VISIBLE else View.GONE
-//        binding.progressBar.visibility = if (status) View.GONE else View.VISIBLE
-//    }
 
     private fun loadFragmentHomeEmpty() {
         loadFragment(HomeEmptyFragment.newInstance(userId), false)

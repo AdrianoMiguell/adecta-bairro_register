@@ -18,7 +18,7 @@ class CitizenListAdapter(
 ) :
     RecyclerView.Adapter<CitizenViewHolder>() {
 
-    private val listCitizenSelected = mutableListOf<CitizenModel>()
+    private val setCitizenSelected = mutableSetOf<CitizenModel>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CitizenViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -34,30 +34,35 @@ class CitizenListAdapter(
     override fun onBindViewHolder(holder: CitizenViewHolder, position: Int) {
         val citizen = citizenList[position]
 
-//        if (citizen.image_id != null && citizen.image_id != 0) {
-//            holder.image.setImageResource(citizen.image_id!!)
-//        } else {
-//            holder.image.setImageResource(R.drawable.baseline_account_circle_dark_24)
-//        }
-
         val ageFormat = ConvertManager.calculateSimpleAge(citizen.birthdate)
         holder.name.text = citizen.name
         holder.age.text = ageFormat
-        holder.image.setImageResource(CitizenManager.getCitizenImage(citizen.birthdate, citizen.sex))
+        holder.image.setImageResource(
+            CitizenManager.getCitizenImage(
+                citizen.birthdate,
+                citizen.sex
+            )
+        )
+        // Definir o fundo com base no estado de seleção
+        if (setCitizenSelected.contains(citizen)) {
+            holder.itemView.setBackgroundResource(R.drawable.rounded_background_green_light_active)
+        } else {
+            holder.itemView.setBackgroundResource(R.drawable.rounded_background_light_gray)
+        }
 
         holder.itemView.setOnClickListener {
             if (activeAction) {
-                if (listCitizenSelected.contains(citizen)) {
-                    listCitizenSelected.remove(citizen)
+                if (setCitizenSelected.contains(citizen)) {
+                    setCitizenSelected.remove(citizen)
                     holder.itemView.setBackgroundResource(R.drawable.rounded_background_light_gray)
                 } else {
-                    listCitizenSelected.add(citizen)
+                    setCitizenSelected.add(citizen)
                     holder.itemView.setBackgroundResource(R.drawable.rounded_background_green_light_active)
                 }
-                notifyDataSetChanged()
+                notifyItemChanged(position)
             }
 
-            citizenOnClickListener.clickListener(citizen, listCitizenSelected)
+            citizenOnClickListener.clickListener(citizen, setCitizenSelected.toList())
         }
     }
 
@@ -81,8 +86,10 @@ class CitizenListAdapter(
 
     @SuppressLint("NotifyDataSetChanged")
     fun clearSelectionAndList() {
-        listCitizenSelected.clear() // Limpa a lista de cidadãos selecionados
+        setCitizenSelected.clear()
         citizenList = citizenList.toMutableList() // Cria uma nova lista para resetar os dados
         notifyDataSetChanged() // Atualiza o RecyclerView
     }
+
+    fun getSelectedCitizens(): List<CitizenModel> = setCitizenSelected.toList()
 }

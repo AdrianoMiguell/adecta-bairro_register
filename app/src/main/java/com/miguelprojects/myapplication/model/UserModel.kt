@@ -9,13 +9,14 @@ data class UserModel(
     var username: String = "",
     var fullname: String = "",
     var email: String = "",
+    var avatar: Int = 0
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        // Leia outros campos conforme necessário
+        parcel.readInt() ?: 0
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -23,7 +24,7 @@ data class UserModel(
         parcel.writeString(username)
         parcel.writeString(fullname)
         parcel.writeString(email)
-        // Escreva outros campos conforme necessário
+        parcel.writeInt(avatar)
     }
 
     override fun describeContents(): Int {
@@ -46,6 +47,7 @@ data class UserModel(
             "username" to username,
             "fullname" to fullname,
             "email" to email,
+            "avatar" to avatar
         )
     }
 
@@ -56,6 +58,7 @@ data class UserModel(
             username = username,
             fullname = fullname,
             email = email,
+            avatar = avatar,
             password = password,
             salt = salt,
         )

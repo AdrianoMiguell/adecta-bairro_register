@@ -44,13 +44,10 @@ import com.miguelprojects.myapplication.room.entity.Workspace
 import com.miguelprojects.myapplication.ui.activitys.MainActivity
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
-import com.miguelprojects.myapplication.util.NetworkSynchronizeUser
-import com.miguelprojects.myapplication.util.NetworkSynchronizeWorkspace
 import com.miguelprojects.myapplication.util.StringsFormattingManager.convertCapitalizeWord
 import com.miguelprojects.myapplication.util.StringsFormattingManager.formatCep
 import com.miguelprojects.myapplication.util.StringsFormattingManager.formattedOrDefault
 import com.miguelprojects.myapplication.util.StyleSystemManager
-import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
 
@@ -60,8 +57,6 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
     private lateinit var workspaceViewModel: WorkspaceViewModel
     private lateinit var userViewModel: UserViewModel
     private lateinit var database: MyAppDatabase
-    private lateinit var networkSynchronizeWorkspace: NetworkSynchronizeWorkspace
-    private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
     private var enableButtonCloseWorkspace = false
     private var addTextEventListener = false
     private var textHandler: Handler? = null
@@ -79,11 +74,25 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
             when (intent?.action) {
                 "DATA_SYNCHRONIZED" -> {
                     progressBarView(true)
+
                     Handler(Looper.getMainLooper()).postDelayed({
                         progressBarView(false)
                         verifyExtrasData()
                         updateUISystem()
-                    }, 500)
+                    }, 200)
+//                    WorkspaceManager.verifyExistsOnlineWorkspaceData()
+//                        this@CreateEditWorkspaceActivity,
+//                        workspaceViewModel,
+//                        workspaceId
+//                    ) { res ->
+//                        if (res) {
+//                            Handler(Looper.getMainLooper()).postDelayed({
+//                                progressBarView(false)
+//                                verifyExtrasData()
+//                                updateUISystem()
+//                            }, 200)
+//                        }
+//                    }
                 }
 
                 "DATA_OFF_SYNCHRONIZED" -> {
@@ -93,42 +102,6 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
                         verifyExtrasData()
                         updateUISystem()
                     }, 500)
-                }
-
-                "DATA_SYNCHRONIZED_USER" -> {
-                    if (intent.getStringExtra("userId").isNullOrEmpty()) {
-                        Toast.makeText(
-                            this@CreateEditWorkspaceActivity,
-                            "Sessão Encerrada! Por favor, realize login novamente!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        UserSessionManager.onUserNotFoundOrLogout(
-                            this@CreateEditWorkspaceActivity,
-                            userViewModel
-                        )
-                    }
-                }
-
-                "DATA_SYNCHRONIZED_WORKSPACE" -> {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        if (workspaceId.isNotEmpty() && intent.getStringExtra("workspaceId").isNullOrEmpty()) {
-                            Toast.makeText(
-                                this@CreateEditWorkspaceActivity,
-                                "Sincronização dos dados em andamento!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                            startActivity(
-                                Intent(
-                                    this@CreateEditWorkspaceActivity,
-                                    MainActivity::class.java
-                                ).addFlags(
-                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                )
-                            )
-                            finish()
-                        }
-                    }, 1000)
                 }
 
                 else -> {
@@ -162,9 +135,6 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
 
         if (isReceiverRegistered) {
             try {
-                unregisterReceiver(networkSynchronizeWorkspace)
-                unregisterReceiver(networkSynchronizeUser)
-
                 LocalBroadcastManager.getInstance(this)
                     .unregisterReceiver(uiUpdateReceiver)
             } catch (e: Exception) {
@@ -179,21 +149,11 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
         val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
 
         if (!isReceiverRegistered) {
-            networkSynchronizeWorkspace =
-                NetworkSynchronizeWorkspace(workspaceViewModel, workspaceId)
-            networkSynchronizeUser =
-                NetworkSynchronizeUser(userViewModel, sharedPreferences, userId)
-
-            // Registrar o receiver do sistema para mudanças de rede
-            registerReceiver(networkSynchronizeWorkspace, intentFilter)
-            registerReceiver(networkSynchronizeUser, intentFilter)
-
             LocalBroadcastManager.getInstance(this).registerReceiver(
                 uiUpdateReceiver,
                 IntentFilter().apply {
                     addAction("DATA_SYNCHRONIZED")
-                    addAction("DATA_SYNCHRONIZED_WORKSPACE")
-                    addAction("DATA_SYNCHRONIZED_USER")
+                    addAction("DATA_OFF_SYNCHRONIZED")
                 }
             )
         }
@@ -211,7 +171,6 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
 
         DrawerConfigurator(
             this,
-            UserModel(),
             0,
             0,
             mapOf("userId" to userId)
@@ -553,11 +512,32 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
     private fun removeWorkspaceMember() {
         binding.layoutInformationWorkspace.buttonCloseWorkspace.setOnClickListener {
             if (networkChangeReceiver.isNetworkConnected(this)) {
-                workspaceViewModel.removeWorkspaceMember(userId, workspaceId) { res ->
-                    if (res) {
-                        animateAfterActionWorkspace("Você saiu do grupo!", UPDATE_CODE)
+                val builder = AlertDialog.Builder(this)
+
+                builder.setTitle("sair Grupo de Trabalho")
+
+                builder.setMessage("Deseja mesmo sair deste grupo de trabalho?")
+
+                builder.setPositiveButton("Sim") { _, _ ->
+                    workspaceViewModel.removeWorkspaceMember(userId, workspaceId) { res ->
+                        if (res) {
+                            animateAfterActionWorkspace("Você saiu do grupo!", UPDATE_CODE)
+                        }
                     }
                 }
+
+                builder.setNegativeButton("Não") { dialog, _ ->
+                    dialog.dismiss()
+
+                    changeStyleButton(
+                        binding.buttonDelete,
+                        R.color.red,
+                        R.color.light_gray,
+                        true
+                    )
+                }
+
+                builder.show()
             } else {
                 showToast("Por segurança, permitimos a saida do grupo apenas quando a conexão for reestabelecida!")
             }
@@ -751,7 +731,7 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
     private fun deleteWorkspace() {
         binding.buttonDelete.visibility = View.VISIBLE
 
-        if (networkChangeReceiver.isNetworkConnected(this) && oldWorkspaceModel.creator.isNotEmpty() && userId.isNotEmpty() && oldWorkspaceModel.creator == userId) {
+        if (oldWorkspaceModel.creator.isNotEmpty() && userId.isNotEmpty() && oldWorkspaceModel.creator == userId) {
             changeStyleButton(
                 binding.buttonDelete,
                 R.color.red,
@@ -760,6 +740,11 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
             )
 
             binding.buttonDelete.setOnClickListener {
+                if (!networkChangeReceiver.isNetworkConnected(this)) {
+                    showToast("Para concluir essa ação, é preciso estar conectado a internet!");
+                    return@setOnClickListener
+                }
+
                 changeStyleButton(
                     binding.buttonDelete,
                     R.color.red,
@@ -824,7 +809,7 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
 
     private fun deleteWorkspaceRoom(workspace: Workspace) {
         try {
-            workspaceViewModel.deleteWorkspaceRoom(workspace)
+            workspaceViewModel.deleteWorkspaceRoom(workspace, userId)
             animateAfterActionWorkspace("Dados salvos com sucesso!", DELETE_CODE)
         } catch (e: Exception) {
             Log.d("deleteWorkspaceRoom", "Erro ao deletar dados do grupo.")

@@ -16,7 +16,7 @@ import com.miguelprojects.myapplication.R
 import com.miguelprojects.myapplication.databinding.FragmentHomeEmptyBinding
 import com.miguelprojects.myapplication.model.WorkspaceModel
 import com.miguelprojects.myapplication.ui.activitys.activity_workspace.CreateEditWorkspaceActivity
-import com.miguelprojects.myapplication.ui.fragments.user.JoinWorkspaceFragment
+import com.miguelprojects.myapplication.ui.activitys.activity_workspace.JoinWorkspaceActivity
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
 
@@ -89,7 +89,13 @@ class HomeEmptyFragment : Fragment() {
 
         binding.buttonParticipe.setOnClickListener {
             if (networkChangeReceiver.isNetworkConnected(requireContext())) {
-                loadFragment(JoinWorkspaceFragment.newInstance(userId), true)
+                if (isAdded) {
+                    val intent = Intent(requireContext(), JoinWorkspaceActivity::class.java)
+                    intent.apply {
+                        putExtra("userId", userId)
+                    }
+                    startActivity(intent)
+                }
             } else {
                 Toast.makeText(
                     requireContext(),

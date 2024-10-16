@@ -5,7 +5,7 @@ import com.miguelprojects.myapplication.R
 object CitizenManager {
     fun getCitizenImage(birthdate: Long, sex: String): Int {
         if (sex.isEmpty() || birthdate == 0L) {
-            return 0
+            return R.drawable.baseline_account_circle_dark_24
         }
 
         println("Entrou para decidir o image_id")

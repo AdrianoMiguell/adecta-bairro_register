@@ -60,7 +60,7 @@ class WorkspaceRepository(private val workspaceDao: WorkspaceDao) {
         }
 
         // Verificar se o modelo está vazio
-        if (workspace.modelIsNotEmpty()) {
+        if (workspace.modelIsEmpty()) {
             println("Modelo de workspace está vazio ou com dados faltando")
             callback(false, "") // Chamar callback aqui para indicar falha
             return
@@ -261,11 +261,16 @@ class WorkspaceRepository(private val workspaceDao: WorkspaceDao) {
             }
     }
 
-    suspend fun deleteWorkspaceRoom(workspace: Workspace) {
+    suspend fun deleteWorkspaceRoom(workspace: Workspace, userId: String) {
         try {
             // Operação de exclusão bem-sucedida
             if (workspaceDao.getWorkspace(workspace.id) != null) {
                 workspaceDao.delete(workspace)
+
+                val workspaceAccess = workspaceDao.getWorkspaceAccess(workspace.id, userId)
+                if (workspaceAccess != null) {
+                    workspaceDao.deleteWorkspaceAccess(workspaceAccess.id)
+                }
             }
         } catch (e: Exception) {
             // Tratar exceção
@@ -273,8 +278,14 @@ class WorkspaceRepository(private val workspaceDao: WorkspaceDao) {
         }
     }
 
-    suspend fun deleteWorkspaceWithIdRoom(workspaceId: String) {
+    suspend fun deleteWorkspaceWithIdRoom(workspaceId: String, userId: String) {
         try {
+            val workspaceAccess = workspaceDao.getWorkspaceAccess(workspaceId, userId)
+            println("WorkspaceAccess for delete: ${workspaceAccess}")
+            if (workspaceAccess != null) {
+                workspaceDao.deleteWorkspaceAccess(workspaceAccess.id)
+            }
+
             // Operação de exclusão bem-sucedida
             workspaceDao.deleteWorkspaceById(workspaceId)
         } catch (e: Exception) {
@@ -529,6 +540,7 @@ class WorkspaceRepository(private val workspaceDao: WorkspaceDao) {
 
     suspend fun updateWorkspaceRoom(workspace: Workspace) {
         try {
+            Log.d("Update workspace", "Workspace: $workspace")
             workspaceDao.update(workspace)
         } catch (e: Exception) {
             Log.d("Update workspace", "Erro ao atualizar os dados: ${e.message}")
@@ -565,7 +577,7 @@ class WorkspaceRepository(private val workspaceDao: WorkspaceDao) {
         workspaceId: String,
         userId: String
     ) {
-        val verifyIfSaveWorkspaceFirebase = loadWorkspaceSuspend(workspaceId).modelIsNotEmpty()
+        val verifyIfSaveWorkspaceFirebase = loadWorkspaceSuspend(workspaceId).modelIsEmpty()
         val verifyIfSaveWorkspace = loadWorkspaceRoom(workspaceId) == null
 
         if (verifyIfSaveWorkspaceFirebase && verifyIfSaveWorkspace) {

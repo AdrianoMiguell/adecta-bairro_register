@@ -13,7 +13,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.miguelprojects.myapplication.R
 import com.miguelprojects.myapplication.databinding.ActivityJoinWorkspaceBinding
-import com.miguelprojects.myapplication.model.UserModel
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
 import com.miguelprojects.myapplication.util.StyleSystemManager
@@ -38,7 +37,7 @@ class JoinWorkspaceActivity : AppCompatActivity() {
         }
 
         StyleSystemManager.changeNavigationBarStyleWithColor(this, window)
-        DrawerConfigurator(this, UserModel(), 0, 0, mapOf("userId" to userId)).configureSimpleTopNavigation()
+        DrawerConfigurator(this, 0, 0, mapOf("userId" to userId)).configureSimpleTopNavigation()
 
         getExtraValues()
         startTools()

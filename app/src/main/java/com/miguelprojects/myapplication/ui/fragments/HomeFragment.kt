@@ -84,14 +84,6 @@ class HomeFragment : Fragment() {
                         }
                     }
 
-//                    "DATA_OFF_SYNCHRONIZED" -> {
-//                        progressBarLayoutManager(true)
-//                        if (isAdded) {
-//                            println("Execultando DATA_OFF_SYNCHRONIZED apos verificação de isAdded")
-//                            loadWorkspace()
-//                        }
-//                    }
-
                     else -> {
                         println("broadcast inesperado!")
                     }

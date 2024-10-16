@@ -78,7 +78,6 @@ class NotificationIncomingOrdersActivity : AppCompatActivity() {
 
         DrawerConfigurator(
             this,
-            UserModel(),
             0,
             0,
             mapOf("userId" to userId)
@@ -370,9 +369,15 @@ class NotificationIncomingOrdersActivity : AppCompatActivity() {
 
     private fun managerViewLayoutRequired(isNotEmpty: Boolean, isConnect: Boolean) {
         managerProgressBar(false)
+
+        if (workspaceCreator != userId) {
+            binding.layoutListRequests.visibility = View.GONE
+            return
+        }
+
+        binding.layoutListRequests.visibility = View.VISIBLE
         binding.textEmptyList.visibility = if (isNotEmpty) View.GONE else View.VISIBLE
 
-//        binding.textInitial.visibility = if (isNotEmpty && isConnect) View.VISIBLE else View.GONE
         binding.recycleviewNotificationIncomingOrders.visibility =
             if (isConnect && isNotEmpty) View.VISIBLE else View.GONE
 

@@ -16,7 +16,8 @@ class UserListAdapter(
     private val creatorWorkspace: String?,
     private val userOnClickListener: UserOnClickListener
 ) : RecyclerView.Adapter<UserViewHolder>() {
-    private var selectedItemId = mutableListOf<String>()
+
+    private val selectedItemIds = mutableSetOf<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -28,13 +29,15 @@ class UserListAdapter(
         return userList.size
     }
 
-    @SuppressLint("NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged", "SetTextI18n")
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val user = userList[position]
 
         holder.image.setImageResource(R.drawable.baseline_account_circle_dark_24)
         holder.name.text = user.username
         holder.email.text = user.email
+
+        // Resetar o fundo para o estado padrão
         holder.itemView.setBackgroundResource(R.color.transparent)
 
         if (user.id == creatorWorkspace) {
@@ -47,19 +50,19 @@ class UserListAdapter(
 
         if (itemClicked == true) {
             holder.itemView.setOnClickListener {
-                if (selectedItemId.contains(user.id)) {
-                    selectedItemId.remove(user.id)
-//                    Log.d("Teste de seleção de item", "Item removido da lista de ids")
+                if (selectedItemIds.contains(user.id)) {
+                    selectedItemIds.remove(user.id)
                 } else {
-                    selectedItemId.add(user.id)
-//                    Log.d("Teste de seleção de item", "Item adicionado na lista de ids")
+                    selectedItemIds.add(user.id)
                 }
 
+                notifyItemChanged(position)
+
                 userOnClickListener.clickListener(user)
-                notifyDataSetChanged() // Notifica o RecyclerView sobre a mudança de dados
             }
 
-            if (selectedItemId.contains(user.id)) {
+            // Atualiza o visual do item conforme a seleção
+            if (selectedItemIds.contains(user.id)) {
                 holder.itemView.setBackgroundResource(R.drawable.rounded_background_green_light_active)
             } else {
                 holder.itemView.setBackgroundResource(R.color.transparent)

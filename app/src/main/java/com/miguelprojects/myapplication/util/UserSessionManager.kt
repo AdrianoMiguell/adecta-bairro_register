@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.EmailAuthProvider
@@ -17,17 +17,12 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
-import com.miguelprojects.myapplication.MyApplication
+import com.miguelprojects.myapplication.R
 import com.miguelprojects.myapplication.model.UserModel
-import com.miguelprojects.myapplication.repository.UserRepository
 import com.miguelprojects.myapplication.room.entity.User
 import com.miguelprojects.myapplication.ui.activitys.MainActivity
 import com.miguelprojects.myapplication.ui.activitys.users.LoginActivity
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
-import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.security.MessageDigest
 import java.security.SecureRandom
 
@@ -47,12 +42,13 @@ object UserSessionManager {
     fun onUserNotFoundOrLogout(activity: AppCompatActivity, userViewModel: UserViewModel) {
         val sharedPreferences = activity.getSharedPreferences("login", Context.MODE_PRIVATE)
 
-//        deleteAllOffData(sharedPreferences) { res ->
-//            println(if (res) "Operação bem sucedida!" else "Operação mal sucedida!")
         println("No onUserNotFoundOrLogout")
 
         val editor = sharedPreferences.edit()
         editor.putString("user_id", "")
+        editor.putString("username", "")
+        editor.putString("email", "")
+        editor.putInt("avatar", 0)
         editor.putBoolean("logged", false)
         editor.apply()
 
@@ -67,103 +63,27 @@ object UserSessionManager {
         activity.finish()
     }
 
-    private fun deleteAllOffData(
-        sharedPreferences: SharedPreferences,
-        callback: (Boolean) -> Unit
-    ) {
-        val storedUserId = sharedPreferences.getString("user_id", "")!!
-
-        val database = MyApplication().database
-        val userDao = database.userDao()
-
-        val userRepository = UserRepository(userDao)
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                userRepository.deleteUserAccountRoom(storedUserId)
-                callback(true)
-            } catch (e: Exception) {
-                Log.d(
-                    "deleteAllOffData",
-                    "Erro na execução da função de deletação de todos os dados: ${e.message}"
-                )
-                callback(false)
-            }
-        }
-    }
-
-    fun checkAndLoadUser(
-        context: Context,
+    fun verifyExistsOnlineUserData(
         activity: AppCompatActivity,
         userViewModel: UserViewModel,
-        callback: (Boolean, UserModel?, User?) -> Unit
-    ) {
-        val networkChangeReceiver = NetworkChangeReceiver()
-        val sharedPreferences = activity.getSharedPreferences("login", Context.MODE_PRIVATE)
-        val storedUserId = sharedPreferences.getString("user_id", null)
-
-        if (storedUserId != null) {
-            if (networkChangeReceiver.isNetworkConnected(context)) {
-                userViewModel.loadUserModel(storedUserId)
-                userViewModel.userModel.observe(activity, Observer { userModel ->
-                    if (userModel != null) {
-                        Log.d(
-                            "UserSessionManager", "ID de usuário encontrado no SharedPreferences"
-                        )
-                        callback(true, userModel, null)
-                    } else {
-                        Log.d("UserSessionManager", "Falha ao carregar dados do usuário")
-                        onUserNotFoundOrLogout(activity, userViewModel)
-                    }
-                })
-            } else {
-                userViewModel.loadUserRoom(storedUserId) { user ->
-                    if (user != null) {
-                        Log.d(
-                            "UserSessionManager", "ID de usuário encontrado no SharedPreferences"
-                        )
-                        callback(true, null, user)
-                    } else {
-                        Log.d("UserSessionManager", "Falha ao carregar dados do usuário")
-                        onUserNotFoundOrLogout(activity, userViewModel)
-                    }
-                }
-            }
-        } else {
-            onUserNotFoundOrLogout(activity, userViewModel)
-            Log.d(
-                "UserSessionManager", "Nenhum ID de usuário encontrado no SharedPreferences"
-            )
-        }
-    }
-
-    //    Quando usar? Usar quando for fazer alterações significativas como de edição e delete.
-    fun accessSecurityCheck(
         userId: String,
-        workspaceId: String,
-        workspaceViewModel: WorkspaceViewModel,
         callback: (Boolean) -> Unit
     ) {
-        if (userId.isEmpty() || workspaceId.isEmpty()) {
-            callback(false)
-            Log.d(
-                "Teste de Acesso - User Session Manager",
-                "Deu ruim pois workspaceId e userId não existem."
-            )
-        } else {
-            workspaceViewModel.accessSecurityCheck(userId, workspaceId) { res ->
-                if (res) {
-                    callback(true)
-                    Log.d(
-                        "Teste de Acesso - User Session Manager", "Deu bom no workspaceViewModel."
-                    )
-                } else {
-                    callback(false)
-                    Log.d(
-                        "Teste de Acesso - User Session Manager", "Deu ruim no workspaceViewModel."
-                    )
-                }
+        userViewModel.verifyExistsUserByOffId(userId) { res, _ ->
+            if (!res) {
+                Toast.makeText(
+                    activity,
+                    "Sessão Encerrada! Por favor, realize login novamente!",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                onUserNotFoundOrLogout(
+                    activity,
+                    userViewModel
+                )
             }
+
+            callback(res)
         }
     }
 
@@ -257,13 +177,6 @@ object UserSessionManager {
                     println("Existe no firebase realtime")
                     callback(true)
                 } else {
-//                    val mAuth = FirebaseAuth.getInstance()
-//                    mAuth.fetchSignInMethodsForEmail(email)
-//                        .addOnCompleteListener { task ->
-//                            if (task.isSuccessful) {
-//                                println("Existe no firebase auth")
-//                                callback(true)
-//                            } else {
                     userViewModel.verifyEmailInRoom(email) { userEntity ->
                         if (userEntity != null) {
                             println("Existe no firebase room")
@@ -272,8 +185,6 @@ object UserSessionManager {
                         }
                         callback(userEntity != null)
                     }
-//                            }
-//                        }
                 }
             }
         } else {
@@ -283,25 +194,23 @@ object UserSessionManager {
         }
     }
 
-    fun verifyExistsEmailInFirebase(
-        userViewModel: UserViewModel,
-        email: String,
-        callback: (Boolean) -> Unit
-    ) {
-        userViewModel.verifyEmailInFirebase(email) { res ->
-            callback(res)
+
+    fun changeImageProfileAvatar(code: Int, isLight: Boolean): Int {
+        return when (code) {
+            1 -> R.drawable.profile_avatar_1
+            2 -> R.drawable.profile_avatar_2
+            3 -> R.drawable.profile_avatar_3
+            4 -> R.drawable.profile_avatar_4
+            5 -> R.drawable.profile_avatar_5
+            6 -> R.drawable.profile_avatar_6
+            7 -> R.drawable.profile_avatar_7
+            8 -> R.drawable.profile_avatar_8
+            else -> {
+                if (isLight) R.drawable.baseline_account_circle_24 else R.drawable.baseline_account_circle_dark_24
+            }
         }
     }
 
-    fun verifyExistsEmailInRoom(
-        userViewModel: UserViewModel,
-        email: String,
-        callback: (Boolean) -> Unit
-    ) {
-        userViewModel.verifyEmailInRoom(email) { userEntity ->
-            callback(userEntity != null)
-        }
-    }
 
     fun registerUserAccountFirebase(
         activity: AppCompatActivity,
@@ -354,7 +263,6 @@ object UserSessionManager {
                 if (firebaseUser != null) {
                     println("usuario firebase encontrado: ${firebaseUser.uid}")
                     val userId = firebaseUser.uid ?: ""
-                    saveUserIdToPreferences(sharedPreferences, userId, checkboxSaveLogin)
                     observeUserModel(
                         activity,
                         userViewModel,
@@ -385,11 +293,14 @@ object UserSessionManager {
         }
     }
 
-    private fun saveUserIdToPreferences(
-        sharedPreferences: SharedPreferences, userId: String, checkboxSaveLogin: Boolean
+    private fun saveUserToPreferences(
+        sharedPreferences: SharedPreferences, userModel: UserModel, checkboxSaveLogin: Boolean
     ) {
         sharedPreferences.edit().apply {
-            putString("user_id", userId)
+            putString("user_id", userModel.id)
+            putString("username", userModel.username)
+            putString("email", userModel.email)
+            putInt("avatar", userModel.avatar)
             putBoolean("logged", checkboxSaveLogin)
             apply()
         }
@@ -408,6 +319,7 @@ object UserSessionManager {
         userViewModel.userModel.observe(activity) { userModel ->
             if (userModel != null && userModel.id.isNotEmpty()) {
                 println("No observer: $userModel")
+                saveUserToPreferences(sharedPreferences, userModel, checkboxSaveLogin)
                 loginUserToRoom(
                     activity,
                     userViewModel,
@@ -466,10 +378,16 @@ object UserSessionManager {
                     userViewModel.updateUserRoom(userLogged) { _, _ -> }
                 }
 
+                var userReference = userModel
+
+                if (userModel.id.isEmpty()) {
+                    userReference = User.toUserModel(userLogged)
+                }
+
                 // Salva o ID do usuário nas preferências
-                saveUserIdToPreferences(
+                saveUserToPreferences(
                     sharedPreferences,
-                    userModel.id.ifEmpty { userLogged.id },
+                    userReference,
                     checkboxSaveLogin
                 )
 
@@ -529,7 +447,11 @@ object UserSessionManager {
 
         userViewModel.updateUserPasswordRoom(userEntity) { res, message ->
             // Salva o ID do usuário nas preferências
-            saveUserIdToPreferences(sharedPreferences, userEntity.id, checkboxSaveLogin)
+            saveUserToPreferences(
+                sharedPreferences,
+                User.toUserModel(userEntity),
+                checkboxSaveLogin
+            )
             println(message)
             callback(
                 res,
@@ -577,8 +499,8 @@ object UserSessionManager {
     ) {
         var needsSync = !NetworkChangeReceiver().isNetworkConnected(context)
 
-        userViewModel.saveUserRoom(newUser, password, needsSync) { id ->
-            saveUserIdToPreferences(sharedPreferences, id, checkboxSaveLogin)
+        userViewModel.saveUserRoom(newUser, password, needsSync) { _ ->
+            saveUserToPreferences(sharedPreferences, newUser, checkboxSaveLogin)
             callback(true, "Login realizado com sucesso!")
         }
     }
@@ -596,32 +518,27 @@ object UserSessionManager {
         println("Chegou no handle")
         println("$email, $password")
         userViewModel.loginUserRoom(email, password) { userLogged ->
-            println(userLogged)
             if (userLogged != null) {
                 val userModel = User.toUserModel(userLogged)
-                println(userModel)
 
                 registerUserAccountFirebase(
                     activity,
                     userViewModel,
                     userModel,
                     password
-                ) { resRegister, messageRegister, regUserId ->
+                ) { resRegister, messageRegister, _ ->
                     if (resRegister) {
                         val mAuth = FirebaseAuth.getInstance()
                         mAuth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
-                                Log.d("task.isSuccessful", "${task.isSuccessful}")
                                 if (task.isSuccessful) {
                                     val firebaseUser = mAuth.currentUser
                                     val userId = firebaseUser?.uid ?: ""
                                     val oldId = userLogged.id
 
-                                    println("regUserId: $regUserId | userId: $userId | oldUserId: $oldId")
-
-                                    saveUserIdToPreferences(
+                                    saveUserToPreferences(
                                         sharedPreferences,
-                                        userId,
+                                        userModel,
                                         checkboxSaveLogin
                                     )
 
@@ -672,8 +589,19 @@ object UserSessionManager {
         }
     }
 
+    private fun updateUserToPreferences(
+        sharedPreferences: SharedPreferences, userModel: UserModel) {
+        sharedPreferences.edit().apply {
+            putString("username", userModel.username)
+            putString("email", userModel.email)
+            putInt("avatar", userModel.avatar)
+            apply()
+        }
+    }
+
     fun updateUserAccount(
         context: Context,
+        sharedPreferences: SharedPreferences,
         newUserModel: UserModel,
         userViewModel: UserViewModel,
         userId: String,
@@ -683,6 +611,7 @@ object UserSessionManager {
             userViewModel.updateUserModel(newUserModel) { res, updateMessage ->
                 if (res) {
                     updateAccountUserRoom(
+                        sharedPreferences,
                         newUserModel,
                         userViewModel,
                         userId,
@@ -699,6 +628,7 @@ object UserSessionManager {
         } else {
 //                pegae o id e salvar no room
             updateAccountUserRoom(
+                sharedPreferences,
                 newUserModel,
                 userViewModel,
                 userId,
@@ -708,7 +638,8 @@ object UserSessionManager {
         }
     }
 
-    fun updateAccountUserRoom(
+    private fun updateAccountUserRoom(
+        sharedPreferences: SharedPreferences,
         newUserModel: UserModel,
         userViewModel: UserViewModel,
         userId: String,
@@ -723,6 +654,8 @@ object UserSessionManager {
                 newUser.needsSync = needsSync
                 userViewModel.updateUserRoom(newUser) { res, message ->
                     if (res) {
+                        println(newUserModel)
+                        updateUserToPreferences(sharedPreferences, newUserModel)
                         callback(true, "Conta atualizada com sucesso!")
                     } else {
                         callback(

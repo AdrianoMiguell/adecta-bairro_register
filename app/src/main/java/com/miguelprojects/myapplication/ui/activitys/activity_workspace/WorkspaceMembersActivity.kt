@@ -68,7 +68,6 @@ class WorkspaceMembersActivity : AppCompatActivity() {
         StyleSystemManager.changeNavigationBarStyleWithColor(this, window)
         DrawerConfigurator(
             this,
-            UserModel(),
             0,
             0,
             mapOf("userId" to userId)
@@ -139,6 +138,8 @@ class WorkspaceMembersActivity : AppCompatActivity() {
             checkButtonVisible(it.creator == userId)
 
             val mapUserWorkspace = it.userIds
+            println(mapUserWorkspace)
+
             mapUserWorkspace.map { users ->
                 if (users.value) {
                     listUserId.add(users.key)
@@ -209,14 +210,15 @@ class WorkspaceMembersActivity : AppCompatActivity() {
 
             builder.setPositiveButton("Sim") { _, _ ->
                 workspaceViewModel.removeWorkspaceMembers(workspaceId, listSelectedUsers)
+                finish()
 
-                listMembers = listMembers.filterNot { it.id in listSelectedUsers }
-
-                if (::adapter.isInitialized) {
-                    adapter.submitList(listMembers)
-                } else {
-                    configureRecycleViewAdapter()
-                }
+//                listMembers = listMembers.filterNot { it.id in listSelectedUsers }
+//
+//                if (::adapter.isInitialized) {
+//                    adapter.submitList(listMembers)
+//                } else {
+//                    configureRecycleViewAdapter()
+//                }
             }
 
             builder.setNegativeButton("Não") { dialog, _ ->

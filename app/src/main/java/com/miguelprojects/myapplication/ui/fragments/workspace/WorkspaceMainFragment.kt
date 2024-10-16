@@ -34,6 +34,7 @@ import com.miguelprojects.myapplication.model.CitizenModel
 import com.miguelprojects.myapplication.model.UserModel
 import com.miguelprojects.myapplication.model.WorkspaceModel
 import com.miguelprojects.myapplication.repository.CitizenRepository
+import com.miguelprojects.myapplication.room.entity.Workspace
 import com.miguelprojects.myapplication.ui.activitys.activity_workspace.CitizenDetailActivity
 import com.miguelprojects.myapplication.ui.activitys.activity_workspace.CreateEditWorkspaceActivity
 import com.miguelprojects.myapplication.ui.activitys.activity_workspace.DeleteCitizensActivity
@@ -70,6 +71,7 @@ class WorkspaceMainFragment : Fragment() {
     private val networkChangeReceiver = NetworkChangeReceiver()
     private var citizenList: List<CitizenModel> = emptyList()
     private var workspaceModel = WorkspaceModel()
+    private var workspaceEntity: Workspace? = null
     private var userId: String = ""
     private var workspaceId: String = ""
     private var isSynchronizing: Boolean = false
@@ -137,52 +139,19 @@ class WorkspaceMainFragment : Fragment() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 when (intent?.action) {
                     "DATA_SYNCHRONIZED" -> {
-                        println(workspaceId)
-                        toggleVisibleProgressBar(true)
-
-                        if (!isSynchronizing) {
-                            isSynchronizing = true
-                            WorkManagerUtil.scheduleCitizenSync(
-                                requireContext(),
-                                userId,
-                                workspaceId
-                            )
-                        }
-
-                        Handler(Looper.getMainLooper()).postDelayed({
+                        if (workspaceEntity != null && workspaceEntity!!.needsSync) {
+                            errorInSystem()
+                        } else {
                             verifyIdsData()
                             initializeWorkspace()
-                        }, 250)
-
-//                        Handler(Looper.getMainLooper()).postDelayed({
-//                            toggleVisibleProgressBar(false)
-//                        }, 1000)
-                        println("Dados atualizados após sincronização - DATA_SYNCHRONIZED")
+                        }
                     }
 
                     "DATA_OFF_SYNCHRONIZED" -> {
                         isSynchronizing = false
                         citizenViewModel.cancelListFirebaseListener(workspaceId)
-                        initializeWorkspace() // Atualiza a UI ou dados após a falta de internet
+                        initializeWorkspace()
                         println("Dados atualizados para modo off")
-                    }
-
-                    "DATA_SYNCHRONIZED_USER" -> {
-                        val resUserId = intent.getStringExtra("userId") ?: ""
-                        if (userId.isEmpty() && resUserId.isNotEmpty()) {
-                            userId = resUserId
-                            println(resUserId)
-                            println("Dados atualizados de user após retomada de internet")
-                        }
-                    }
-
-                    "DATA_SYNCHRONIZED_WORKSPACE" -> {
-//                        val resWorkspaceId = intent.getStringExtra("workspaceId") ?: ""
-//                        if (workspaceId.isEmpty() && resWorkspaceId.isNotEmpty()) {
-//                            workspaceId = resWorkspaceId
-//                            println(resWorkspaceId)
-//                            println("Dados atualizados de workspace após retomada de internet")
-//                        }
                     }
                 }
             }
@@ -191,8 +160,6 @@ class WorkspaceMainFragment : Fragment() {
         val intentFilter = IntentFilter().apply {
             addAction("DATA_SYNCHRONIZED")
             addAction("DATA_OFF_SYNCHRONIZED")
-            addAction("DATA_SYNCHRONIZED_USER")
-            addAction("DATA_SYNCHRONIZED_WORKSPACE")
         }
 
         LocalBroadcastManager.getInstance(requireContext())
@@ -472,7 +439,7 @@ class WorkspaceMainFragment : Fragment() {
     private fun errorInSystem() {
         Toast.makeText(
             requireContext(),
-            "Erro ao carregar os dados. Reporte esse problema.",
+            "Erro ao carregar os dados. Por favor, Tente novamente!",
             Toast.LENGTH_SHORT
         ).show()
         requireActivity().supportFragmentManager.popBackStack()
@@ -564,6 +531,8 @@ class WorkspaceMainFragment : Fragment() {
         workspaceViewModel.loadDataRoom(workspaceId) { workspace ->
             println(workspace)
             if (workspace != null) {
+                workspaceEntity = workspace
+
                 if (workspace.needsSync && workspace.firebaseId.isNullOrEmpty()) {
 //                    needsWorkspaceIdSynchronized = true
                     println("needsWorkspaceIdSynchronized = true")
@@ -874,9 +843,8 @@ class WorkspaceMainFragment : Fragment() {
                 intent.putExtra("workspaceId", workspaceId)
                 intent.putExtra("userId", userId)
                 intent.putExtra("citizenId", citizenModel.id)
+
                 intent.putExtra("citizenModel", citizenModel)
-                intent.putExtra("workspaceModel", workspaceModel)
-                intent.putExtra("userModel", userModel)
                 result.launch(intent)
             })
         binding.recycleviewCitizen.adapter = adapter

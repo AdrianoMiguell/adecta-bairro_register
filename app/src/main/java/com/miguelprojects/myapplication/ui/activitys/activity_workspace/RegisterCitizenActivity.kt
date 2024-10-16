@@ -6,10 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.net.ConnectivityManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -25,18 +22,14 @@ import com.miguelprojects.myapplication.factory.CitizenViewModelFactory
 import com.miguelprojects.myapplication.factory.UserViewModelFactory
 import com.miguelprojects.myapplication.factory.WorkspaceViewModelFactory
 import com.miguelprojects.myapplication.model.CitizenModel
-import com.miguelprojects.myapplication.model.UserModel
 import com.miguelprojects.myapplication.model.WorkspaceModel
 import com.miguelprojects.myapplication.repository.CitizenRepository
 import com.miguelprojects.myapplication.repository.UserRepository
 import com.miguelprojects.myapplication.room.database.MyAppDatabase
-import com.miguelprojects.myapplication.ui.activitys.MainActivity
 import com.miguelprojects.myapplication.ui.fragments.citizen.RegisterPersonalDataFragment
 import com.miguelprojects.myapplication.util.ConvertManager
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
-import com.miguelprojects.myapplication.util.NetworkSynchronizeUser
-import com.miguelprojects.myapplication.util.NetworkSynchronizeWorkspace
 import com.miguelprojects.myapplication.util.StringsFormattingManager.generateCPF
 import com.miguelprojects.myapplication.util.StringsFormattingManager.generatePhoneNumber
 import com.miguelprojects.myapplication.util.StringsFormattingManager.generateRandomManName
@@ -45,7 +38,6 @@ import com.miguelprojects.myapplication.util.StringsFormattingManager.generateRa
 import com.miguelprojects.myapplication.util.StringsFormattingManager.generateSUSNumber
 import com.miguelprojects.myapplication.util.StringsFormattingManager.generateSex
 import com.miguelprojects.myapplication.util.StyleSystemManager
-import com.miguelprojects.myapplication.util.UserSessionManager
 import com.miguelprojects.myapplication.viewmodel.CitizenViewModel
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
 import com.miguelprojects.myapplication.viewmodel.WorkspaceViewModel
@@ -58,8 +50,6 @@ class RegisterCitizenActivity : AppCompatActivity() {
     private lateinit var citizenViewModel: CitizenViewModel
     private lateinit var workspaceModel: WorkspaceModel
     private lateinit var citizenModel: CitizenModel
-    private lateinit var networkSynchronizeUser: NetworkSynchronizeUser
-    private lateinit var networkSynchronizeWorkspace: NetworkSynchronizeWorkspace
     private val networkChangeReceiver = NetworkChangeReceiver()
     private lateinit var sharedPreferences: SharedPreferences
     private var isReceiverRegistered = false
@@ -69,42 +59,20 @@ class RegisterCitizenActivity : AppCompatActivity() {
     private val uiUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
+                "DATA_SYNCHRONIZED" -> {
+//                    UserSessionManager.verifyExistsOnlineUserData(
+//                        this@RegisterCitizenActivity,
+//                        userViewModel,
+//                        userId
+//                    ) { _ -> }
+//
+//                    WorkspaceManager.verifyExistsOnlineWorkspaceData(
+//                        this@RegisterCitizenActivity,
+//                        workspaceViewModel,
+//                        workspaceId
+//                    ) { _ -> }
+                }
                 "DATA_OFF_SYNCHRONIZED" -> finish()
-                "DATA_SYNCHRONIZED_USER" -> {
-                    if (intent.getStringExtra("userId").isNullOrEmpty()) {
-                        Toast.makeText(
-                            this@RegisterCitizenActivity,
-                            "Sessão Encerrada! Por favor, realize login novamente!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        UserSessionManager.onUserNotFoundOrLogout(
-                            this@RegisterCitizenActivity,
-                            userViewModel
-                        )
-                    }
-                }
-
-                "DATA_SYNCHRONIZED_WORKSPACE" -> {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        if (intent.getStringExtra("workspaceId").isNullOrEmpty()) {
-                            Toast.makeText(
-                                this@RegisterCitizenActivity,
-                                "Sincronização dos dados em andamento!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                            startActivity(
-                                Intent(
-                                    this@RegisterCitizenActivity,
-                                    MainActivity::class.java
-                                ).addFlags(
-                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                )
-                            )
-                            finish()
-                        }
-                    }, 1000)
-                }
             }
         }
     }
@@ -130,7 +98,6 @@ class RegisterCitizenActivity : AppCompatActivity() {
 
         DrawerConfigurator(
             this,
-            UserModel(),
             0,
             0,
             mapOf("userId" to userId)
@@ -163,23 +130,11 @@ class RegisterCitizenActivity : AppCompatActivity() {
         }
 
         if (!isReceiverRegistered) {
-            val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-
-            networkSynchronizeWorkspace =
-                NetworkSynchronizeWorkspace(workspaceViewModel, workspaceId)
-            networkSynchronizeUser =
-                NetworkSynchronizeUser(userViewModel, sharedPreferences, userId)
-
-            registerReceiver(networkSynchronizeWorkspace, intentFilter)
-            registerReceiver(networkSynchronizeUser, intentFilter)
-
             LocalBroadcastManager.getInstance(this).registerReceiver(
                 uiUpdateReceiver,
                 IntentFilter().apply {
-//                    addAction("DATA_SYNCHRONIZED")
+                    addAction("DATA_SYNCHRONIZED")
                     addAction("DATA_OFF_SYNCHRONIZED")
-                    addAction("DATA_SYNCHRONIZED_USER")
-                    addAction("DATA_SYNCHRONIZED_WORKSPACE")
                 }
             )
             isReceiverRegistered = true
@@ -191,7 +146,8 @@ class RegisterCitizenActivity : AppCompatActivity() {
 
         if (isReceiverRegistered) {
             try {
-                unregisterReceiver(networkSynchronizeUser)
+                LocalBroadcastManager.getInstance(this)
+                    .unregisterReceiver(uiUpdateReceiver)
             } catch (e: IllegalArgumentException) {
                 // O receptor não estava registrado, não faça nada
             } finally {

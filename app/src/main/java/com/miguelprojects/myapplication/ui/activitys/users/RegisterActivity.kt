@@ -22,6 +22,7 @@ import com.miguelprojects.myapplication.databinding.ActivityRegisterBinding
 import com.miguelprojects.myapplication.factory.UserViewModelFactory
 import com.miguelprojects.myapplication.model.UserModel
 import com.miguelprojects.myapplication.repository.UserRepository
+import com.miguelprojects.myapplication.util.ConvertManager
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
 import com.miguelprojects.myapplication.util.StyleSystemManager
 import com.miguelprojects.myapplication.util.UserSessionManager
@@ -193,6 +194,8 @@ class RegisterActivity : AppCompatActivity() {
     private fun saveUserLocal(userModel: UserModel, password: String) {
         try {
             val needsSync = !networkChangeReceiver.isNetworkConnected(this)
+            userModel.fullname = ConvertManager.capitalizeWords(userModel.fullname)
+            userModel.username = ConvertManager.capitalizeWords(userModel.username)
 
             userViewModel.saveUserRoom(userModel, password, needsSync) { userId ->
                 if (userId.isNotEmpty()) {

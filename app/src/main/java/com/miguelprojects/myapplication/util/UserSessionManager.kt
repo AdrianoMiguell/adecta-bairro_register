@@ -228,6 +228,8 @@ object UserSessionManager {
                     if (firebaseUser != null) {
                         val userId = firebaseUser.uid
                         userModel.id = userId
+                        userModel.fullname = ConvertManager.capitalizeWords(userModel.fullname)
+                        userModel.username = ConvertManager.capitalizeWords(userModel.username)
 
                         userViewModel.saveUserModel(userModel) { res ->
                             if (res) {
@@ -607,6 +609,9 @@ object UserSessionManager {
         userId: String,
         callback: (Boolean, String) -> Unit
     ) {
+        newUserModel.fullname = ConvertManager.capitalizeWords(newUserModel.fullname)
+        newUserModel.username = ConvertManager.capitalizeWords(newUserModel.username)
+
         if (NetworkChangeReceiver().isNetworkConnected(context)) {
             userViewModel.updateUserModel(newUserModel) { res, updateMessage ->
                 if (res) {

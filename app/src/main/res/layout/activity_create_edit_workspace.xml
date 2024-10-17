@@ -149,8 +149,7 @@
                                 android:outlineProvider="none"
                                 android:padding="10dp"
                                 android:maxLines="1"
-                                android:maxLength="8"
-                                android:text="88899999" />
+                                android:maxLength="8" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -179,8 +178,7 @@
                                 android:outlineProvider="none"
                                 android:padding="10dp"
                                 android:maxLines="1"
-                                android:maxLength="40"
-                                android:text="Pernambuco" />
+                                android:maxLength="40" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -216,8 +214,7 @@
                                 android:outlineProvider="none"
                                 android:padding="10dp"
                                 android:maxLines="1"
-                                android:maxLength="75"
-                                android:text="Petrolina" />
+                                android:maxLength="75" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -246,8 +243,7 @@
                                 android:outlineProvider="none"
                                 android:padding="10dp"
                                 android:maxLines="1"
-                                android:maxLength="100"
-                                android:text="Tapera" />
+                                android:maxLength="100" />
                         </LinearLayout>
                     </LinearLayout>
 

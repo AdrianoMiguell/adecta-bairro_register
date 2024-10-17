@@ -27,16 +27,8 @@ import com.miguelprojects.myapplication.repository.CitizenRepository
 import com.miguelprojects.myapplication.repository.UserRepository
 import com.miguelprojects.myapplication.room.database.MyAppDatabase
 import com.miguelprojects.myapplication.ui.fragments.citizen.RegisterPersonalDataFragment
-import com.miguelprojects.myapplication.util.ConvertManager
 import com.miguelprojects.myapplication.util.DrawerConfigurator
 import com.miguelprojects.myapplication.util.NetworkChangeReceiver
-import com.miguelprojects.myapplication.util.StringsFormattingManager.generateCPF
-import com.miguelprojects.myapplication.util.StringsFormattingManager.generatePhoneNumber
-import com.miguelprojects.myapplication.util.StringsFormattingManager.generateRandomManName
-import com.miguelprojects.myapplication.util.StringsFormattingManager.generateRandomName
-import com.miguelprojects.myapplication.util.StringsFormattingManager.generateRandomWomanName
-import com.miguelprojects.myapplication.util.StringsFormattingManager.generateSUSNumber
-import com.miguelprojects.myapplication.util.StringsFormattingManager.generateSex
 import com.miguelprojects.myapplication.util.StyleSystemManager
 import com.miguelprojects.myapplication.viewmodel.CitizenViewModel
 import com.miguelprojects.myapplication.viewmodel.UserViewModel
@@ -72,6 +64,7 @@ class RegisterCitizenActivity : AppCompatActivity() {
 //                        workspaceId
 //                    ) { _ -> }
                 }
+
                 "DATA_OFF_SYNCHRONIZED" -> finish()
             }
         }
@@ -106,20 +99,27 @@ class RegisterCitizenActivity : AppCompatActivity() {
         if (citizenModel.id.isNotEmpty()) {
             loadFragmentCitizen(citizenModel)
         } else {
-            val resultSex = generateSex()
+//            val resultSex = generateSex()
+
+//            val newCitizen = CitizenModel(
+//                name = if (resultSex == "f") generateRandomWomanName() else if (resultSex == "m") generateRandomManName() else generateRandomName(),
+//                cpf = generateCPF(),
+//                sus = generateSUSNumber(),
+//                telephone = generatePhoneNumber(),
+//                sex = resultSex,
+//                birthdate = ConvertManager.generateRandomBirthdateTimestamp(),
+//                fathername = generateRandomManName(),
+//                mothername = generateRandomWomanName(),
+//                birthplace = "Terra natal",
+//                street = "Rua x",
+//                numberhouse = 7,
+//                cep = workspaceModel.cep,
+//                state = workspaceModel.state,
+//                city = workspaceModel.city,
+//                neighborhood = workspaceModel.neighborhood,
+//            )
 
             val newCitizen = CitizenModel(
-                name = if (resultSex == "f") generateRandomWomanName() else if (resultSex == "m") generateRandomManName() else generateRandomName(),
-                cpf = generateCPF(),
-                sus = generateSUSNumber(),
-                telephone = generatePhoneNumber(),
-                sex = resultSex,
-                birthdate = ConvertManager.generateRandomBirthdateTimestamp(),
-                fathername = generateRandomManName(),
-                mothername = generateRandomWomanName(),
-                birthplace = "Terra natal",
-                street = "Rua x",
-                numberhouse = 7,
                 cep = workspaceModel.cep,
                 state = workspaceModel.state,
                 city = workspaceModel.city,

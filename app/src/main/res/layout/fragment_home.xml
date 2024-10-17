@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="visible">
 
         <ImageView
             android:layout_width="match_parent"
@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:gravity="center"
-            android:text="Adicione uma área de trabalho para começar"
+            android:text="Adicione um grupo de trabalho para começar."
             android:textColor="@color/tert_ebony_clay"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -41,22 +41,24 @@
             <Button
                 android:id="@+id/button_add_new"
                 style="@style/transparentButtonTextDark"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:layout_marginRight="10dp"
                 android:padding="5dp"
-                android:text="Criar Workspace"
+                android:text="Criar Grupo"
                 android:textSize="11dp" />
 
             <Button
                 android:id="@+id/button_participe"
                 style="@style/Widget.MaterialComponents.Button"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
+                android:layout_weight="1"
                 android:backgroundTint="@color/quat_caribbean_green"
                 android:padding="5dp"
-                android:text="Participar Workspace"
+                android:text="Participar de um Grupo"
                 android:textSize="11dp" />
         </LinearLayout>
     </LinearLayout>

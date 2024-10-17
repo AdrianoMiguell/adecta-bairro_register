@@ -271,6 +271,11 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
         newWorkspaceModel = workspaceModelTest
     }
 
+    private fun isValueCep(): Boolean {
+        val inputText = binding.editCep.text
+        return inputText.length == 8 && inputText.all { it.isDigit() }
+    }
+
     private fun verifyIsNotEmptyValues(workspaceModel: WorkspaceModel): Boolean {
         return workspaceModel.name.isNotEmpty() && workspaceModel.cep.isNotEmpty() && workspaceModel.state.isNotEmpty() && workspaceModel.city.isNotEmpty() && workspaceModel.neighborhood.isNotEmpty()
     }
@@ -337,6 +342,16 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
         binding.buttonCreateEdit.setOnClickListener {
             getValuesEditFields()
 
+            if (!verifyIsNotEmptyValues(newWorkspaceModel)) {
+                showToast("Preencha todos os campos vazios.")
+                return@setOnClickListener
+            }
+
+            if (!isValueCep()) {
+                showToast("Valor de Cep inválido.")
+                return@setOnClickListener
+            }
+
             changeStyleButton(
                 binding.buttonCreateEdit,
                 R.color.quat_caribbean_green,
@@ -344,31 +359,25 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
                 false
             )
 
-            if (verifyIsNotEmptyValues(newWorkspaceModel)) {
-                val needsSync = !networkChangeReceiver.isNetworkConnected(this)
+            val needsSync = !networkChangeReceiver.isNetworkConnected(this)
 
-                newWorkspaceModel.id = ""
-                newWorkspaceModel.creator = userId
+            newWorkspaceModel.id = ""
+            newWorkspaceModel.creator = userId
 
-                userViewModel.loadUserRoom(userId) { user ->
-                    if (user == null) {
-                        showToast("Erro ao captar dados do criador do grupo!")
-                        return@loadUserRoom
-                    }
-
-                    if (networkChangeReceiver.isNetworkConnected(this)) {
-                        val userIds: MutableMap<String, Boolean> = mutableMapOf(userId to true)
-                        newWorkspaceModel.userIds = userIds
-
-                        addWorkspaceDataFirebase()
-                    } else {
-                        addWorkspaceDataRoom(needsSync)
-                    }
+            userViewModel.loadUserRoom(userId) { user ->
+                if (user == null) {
+                    showToast("Erro ao captar dados do criador do grupo!")
+                    return@loadUserRoom
                 }
-            } else {
-                showToast(
-                    "Preencha todos os campos vazios."
-                )
+
+                if (networkChangeReceiver.isNetworkConnected(this)) {
+                    val userIds: MutableMap<String, Boolean> = mutableMapOf(userId to true)
+                    newWorkspaceModel.userIds = userIds
+
+                    addWorkspaceDataFirebase()
+                } else {
+                    addWorkspaceDataRoom(needsSync)
+                }
             }
 
             progressBarView(false)
@@ -660,6 +669,11 @@ class CreateEditWorkspaceActivity : AppCompatActivity() {
 
             if (!verifyIsNotEmptyValues(newWorkspaceModel)) {
                 showToast("Preencha todos os campos vazios.")
+                return@setOnClickListener
+            }
+
+            if (!isValueCep()) {
+                showToast("Valor de Cep inválido.")
                 return@setOnClickListener
             }
 

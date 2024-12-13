@@ -50,7 +50,7 @@ class SplashScreenActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun verifyIfAfterDate(): Boolean {
-        val fixedDate = LocalDate.parse("2024-10-30", DateTimeFormatter.ISO_DATE)
+        val fixedDate = LocalDate.parse("2025-03-30", DateTimeFormatter.ISO_DATE)
 
         val dateActual = LocalDate.now()
 
